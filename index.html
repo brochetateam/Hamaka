@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#00BFA6" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <title>HAMAKA — Gestión de hamacas</title>
+  <style>
+    /* THEME TOKENS */
+    :root{
+      --radius:16px; --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --tile-min:clamp(78px, 22vw, 118px);
+      --font: -apple-system, system-ui, Segoe UI, Inter, Roboto, Arial, sans-serif;
+      --trans-fast: .18s ease; --trans-med:.28s cubic-bezier(.2,.9,.2,1);
+    }
+    body{ margin:0; font:16px/1.25 var(--font); }
+    /* Paletas + modos: Beach (default), Ocean, Sunset */
+    body[data-palette="beach"][data-mode="light"]{
+      --bg:#FCF7F1; --card:#FFFFFF; --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
+      --muted:#E8E1D6; --pill-bg:#FFF2DF; --pill-fg:#5F4B32;
+      --brand:#00BFA6; --accent:#FF7B6E; --secondary:#1576EA; --ok:#10B981; --warn:#F59E0B;
+      --wave1: rgba(255,203,164,.35); --wave2: rgba(0,191,166,.18);
+    }
+    body[data-palette="beach"][data-mode="dark"]{
+      --bg:#0E1016; --card:#0F172A; --ink:#E6EDF7; --ink-2:#C9D4E3; --ink-3:#9AA9BD;
+      --muted:#29334A; --pill-bg:#1E293B; --pill-fg:#E6EDF7;
+      --brand:#00BFA6; --accent:#FF7B6E; --secondary:#69A7FF; --ok:#34D399; --warn:#FBBF24;
+      --wave1: rgba(255,203,164,.14); --wave2: rgba(0,191,166,.12);
+    }
+    body[data-palette="ocean"][data-mode="light"]{
+      --bg:#F4FAFF; --card:#FFFFFF; --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
+      --muted:#E3EAF3; --pill-bg:#E8F6FF; --pill-fg:#0B3B5E;
+      --brand:#0EA5E9; --accent:#22D3EE; --secondary:#2563EB; --ok:#10B981; --warn:#F59E0B;
+      --wave1: rgba(14,165,233,.18); --wave2: rgba(34,211,238,.18);
+    }
+    body[data-palette="ocean"][data-mode="dark"]{
+      --bg:#0B1220; --card:#0F172A; --ink:#E6EDF7; --ink-2:#C9D4E3; --ink-3:#9AA9BD;
+      --muted:#263045; --pill-bg:#122035; --pill-fg:#E6EDF7;
+      --brand:#38BDF8; --accent:#22D3EE; --secondary:#69A7FF; --ok:#34D399; --warn:#FBBF24;
+      --wave1: rgba(14,165,233,.12); --wave2: rgba(34,211,238,.12);
+    }
+    body[data-palette="sunset"][data-mode="light"]{
+      --bg:#FFF7F4; --card:#FFFFFF; --ink:#121417; --ink-2:#323A45; --ink-3:#6B7280;
+      --muted:#F1E4E0; --pill-bg:#FFEDE6; --pill-fg:#6A3A2E;
+      --brand:#FB7185; --accent:#F59E0B; --secondary:#8B5CF6; --ok:#22C55E; --warn:#F59E0B;
+      --wave1: rgba(251,113,133,.22); --wave2: rgba(245,158,11,.16);
+    }
+    body[data-palette="sunset"][data-mode="dark"]{
+      --bg:#121018; --card:#171424; --ink:#F3F4F6; --ink-2:#D1D5DB; --ink-3:#9CA3AF;
+      --muted:#302A3E; --pill-bg:#2B2336; --pill-fg:#F3F4F6;
+      --brand:#FB7185; --accent:#F59E0B; --secondary:#A78BFA; --ok:#34D399; --warn:#FBBF24;
+      --wave1: rgba(251,113,133,.12); --wave2: rgba(245,158,11,.10);
+    }
+
+    /* Ocean/Beach background */
+    .ocean{ position:fixed; inset:-40vh -15vw auto -15vw; height:52vh; pointer-events:none; z-index:-1;
+      background: radial-gradient(1200px 420px at 50% 90%, var(--wave1), transparent 60%),
+                  linear-gradient(120deg, var(--wave2), transparent 55%);
+      filter: blur(28px) saturate(120%); animation: swell 18s ease-in-out infinite alternate;
+    }
+    @keyframes swell{ from{ transform: translateY(-4%) } to{ transform: translateY(3%) } }
+
+    header{
+      position:sticky; top:0; z-index:10; backdrop-filter: saturate(140%) blur(10px);
+      background: color-mix(in oklab, var(--card) 82%, transparent);
+      border-bottom:1px solid var(--muted);
+      padding: .65rem max(1rem, env(safe-area-inset-left));
+    }
+    .header-top{ display:flex; align-items:center; gap:.75rem }
+    .logo{ display:flex; align-items:center; gap:.6rem; font-weight:800; letter-spacing:.2px; color:var(--ink)}
+    .logo svg{ width:26px; height:26px }
+    .chip{ padding:.32rem .55rem; border-radius:999px; background:var(--pill-bg); color:var(--pill-fg); font-size:.72rem }
+    .actions{ margin-left:auto; display:flex; gap:.4rem }
+    .iconBtn{ appearance:none; border:1px solid var(--muted); background:var(--card); color:var(--ink); border-radius:12px; width:40px; height:40px; display:grid; place-items:center; cursor:pointer; transition: transform var(--trans-fast) }
+    .iconBtn:active{ transform: scale(.97) }
+    .search-row{ margin-top:.55rem }
+    .search input{ width:100%; padding:.75rem .9rem; border-radius:14px; border:1px solid var(--muted); background:var(--card); color:var(--ink) }
+
+    main{ background:var(--bg); color:var(--ink); padding: .9rem; padding-bottom: calc(84px + env(safe-area-inset-bottom)); max-width:1100px; margin:0 auto }
+
+    /* KPIs compact */
+    .kpis{ display:flex; gap:.6rem; flex-wrap:wrap; margin:.7rem 0 }
+    .kpi{ flex:1; min-width:140px; display:flex; align-items:center; justify-content:space-between; gap:.4rem; background:var(--card);
+      border:1px solid var(--muted); border-radius:14px; padding:.55rem .8rem; box-shadow: var(--shadow); }
+
+    /* Map header */
+    .map-head{ display:flex; gap:.6rem; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:.6rem }
+    .pill{ padding:.35rem .65rem; border-radius:999px; font-size:.8rem; border:1px solid var(--muted); background:var(--card); color:var(--ink) }
+    .btn{ appearance:none; border:0; border-radius:14px; padding:.7rem 1rem; font-weight:700; cursor:pointer; transition: transform var(--trans-fast), background .2s ease;
+      background:var(--brand); color:#fff; box-shadow: var(--shadow) }
+    .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--muted) }
+
+    /* Grid responsive */
+    .grid{ display:grid; gap:.65rem; grid-template-columns: repeat(var(--cols), minmax(var(--tile-min), 1fr)); }
+    @media (max-width: 640px){
+      .grid{ grid-template-columns: repeat(auto-fill, minmax(min(120px, 33vw), 1fr)); }
+    }
+
+    /* Lounger tile */
+    .lounger{
+      position:relative; isolation:isolate; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height: clamp(88px, 14vw, 138px);
+      border-radius:16px; border:1px solid color-mix(in oklab, var(--muted) 72%, transparent);
+      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 96%, transparent), color-mix(in oklab, var(--card) 85%, transparent));
+      overflow:hidden; user-select:none;
+      box-shadow: 0 1px 0 rgba(0,0,0,.04);
+      transition: transform var(--trans-fast), box-shadow var(--trans-fast), border-color .2s ease, outline-color .2s ease;
+    }
+    .lounger:hover{ transform: translateY(-2px) }
+    .lounger .id{ font-size:.92rem; font-weight:800; letter-spacing:.2px; margin-top:.15rem }
+    .status-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; box-shadow: 0 0 0 3px rgba(0,0,0,.06) }
+    .zone-tag{ position:absolute; top:8px; left:8px; font-size:.68rem; padding:.18rem .4rem; border-radius:999px; background:var(--pill-bg); color:var(--pill-fg); border:1px solid color-mix(in oklab, var(--muted) 60%, transparent) }
+    .people-badge{ position:absolute; bottom:8px; left:8px; min-width:22px; height:22px; border-radius:999px; display:grid; place-items:center;
+      background: color-mix(in oklab, var(--secondary) 92%, transparent); color:#fff; font-weight:800; font-size:.75rem; letter-spacing:.2px }
+    .lounger .svg-lounger{ width:52%; opacity:.95 }
+    .lounger.flash{ animation: pop var(--trans-med) }
+    @keyframes pop{ from{ transform: scale(.96); box-shadow: 0 0 0 rgba(0,0,0,0) } to{ transform: scale(1); box-shadow: var(--shadow) } }
+
+    /* States */
+    .lounger.free{ border-color: rgba(16,185,129,.35) }
+    .lounger.reserved{ background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 12%, var(--card)), var(--card)); border-color: color-mix(in oklab, var(--accent) 42%, var(--muted)) }
+    .lounger.occupied{ background: linear-gradient(180deg, color-mix(in oklab, var(--brand) 12%, var(--card)), var(--card)); border-color: color-mix(in oklab, var(--brand) 42%, var(--muted)) }
+    .lounger.maint{ background: linear-gradient(180deg, color-mix(in oklab, #94A3B8 16%, var(--card)), var(--card)); border-style:dashed }
+
+    /* Ripple */
+    .ripple{ position:absolute; border-radius:50%; transform: scale(0); background: rgba(255,255,255,.7); mix-blend-mode: overlay; animation: ripple .6s ease-out; pointer-events:none }
+    @keyframes ripple{ to{ transform: scale(6); opacity:0 } }
+
+    /* Bottom sheet */
+    .sheet{ position:fixed; left:0; right:0; bottom:-100%; background:var(--card);
+      border-top-left-radius:22px; border-top-right-radius:22px; box-shadow: 0 -20px 60px rgba(0,0,0,.35); padding:1rem; z-index:20;
+      transition: transform .34s cubic-bezier(.2,.8,.2,1), bottom .34s; transform: translateY(100%); max-height: 92vh; overflow:auto;
+      border-top:1px solid var(--muted);
+    }
+    .sheet.active{ bottom:0; transform: translateY(0) }
+    .sheet .handle{ width:56px; height:5px; background:var(--muted); border-radius:999px; margin:.2rem auto 1rem }
+    label{ font-size:.85rem; color:var(--ink-3); display:block; margin-bottom:.25rem }
+    input, select, textarea{ width:100%; border:1px solid var(--muted); border-radius:12px; padding:.65rem .75rem; background:var(--card); color:var(--ink) }
+    .row{ display:flex; gap:.7rem; align-items:center; flex-wrap:wrap }
+    .row > *{ flex:1 }
+
+    /* Nav bottom (solo iconos en móvil) */
+    nav{ position:fixed; left:0; right:0; bottom:0; z-index:10; padding: .5rem max(1rem, env(safe-area-inset-left));
+      padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); background: color-mix(in oklab, var(--card) 88%, transparent);
+      backdrop-filter: saturate(140%) blur(10px); border-top:1px solid var(--muted) }
+    .tabs{ display:flex; gap:.5rem; justify-content:space-between }
+    .tab{ flex:1; display:flex; align-items:center; justify-content:center; gap:.45rem; background:transparent; color:var(--ink); border:1px solid var(--muted);
+      border-radius:14px; min-height:52px; cursor:pointer; transition: transform var(--trans-fast) }
+    .tab:active{ transform: translateY(1px) }
+    .tab.active{ background: var(--secondary); color:#fff; border-color: transparent }
+    .tab svg{ width:24px; height:24px }
+    .tab .label{ font-weight:700 }
+    @media (max-width: 640px){
+      .tab .label{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
+      .tab svg{ width:26px; height:26px }
+    }
+
+    /* Toast */
+    .toast{ position:fixed; left:50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom)); background:var(--ink); color:white; padding:.7rem 1rem; border-radius:12px; opacity:0; pointer-events:none }
+    .toast.show{ opacity:1; animation: toast .2s ease; }
+    @keyframes toast{ from{ transform: translate(-50%, 8px); opacity:0 } }
+
+    @media (prefers-reduced-motion: reduce){
+      .ocean{ animation: none }
+      .lounger:hover{ transform:none }
+      .lounger.flash{ animation:none }
+    }
+  </style>
+</head>
+<body data-palette="beach" data-mode="light">
+  <div class="ocean" aria-hidden="true"></div>
+
+  <header>
+    <div class="header-top">
+      <div class="logo" aria-label="Hamaka">
+        <!-- Logo -->
+        <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
+          <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00BFA6"/><stop offset="1" stop-color="#1576EA"/></linearGradient></defs>
+          <path d="M8 42c10 0 18-8 24-8s14 8 24 8" fill="none" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
+          <path d="M20 20l-6 18M44 20l6 18" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round"/>
+          <path d="M16 26c8 2 24 2 32 0" stroke="#FF6B6B" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        HAMAKA <span class="chip" id="envChip">v1.2</span>
+      </div>
+      <div class="actions">
+        <button class="iconBtn" id="paletteBtn" title="Cambiar paleta" aria-label="Cambiar paleta">
+          <!-- Palette icon -->
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3a9 9 0 0 0 0 18h3a2 2 0 0 0 2-2c0-.9-.6-1.7-1.5-1.93A2.5 2.5 0 0 1 15 14c0-1.38 1.12-2.5 2.5-2.5h.86A3.64 3.64 0 0 0 22 7.86 9 9 0 0 0 12 3Zm-5 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm4-5a2 2 0 1 1 0-4 2 2 0 0 1 0 4ZM6 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm5 2a2 2 0 1 1 0-4h.01a2 2 0 0 1-.01 4Z"/></svg>
+        </button>
+        <button class="iconBtn" id="modeBtn" title="Claro/Oscuro" aria-label="Cambiar modo">
+          <!-- Sun/Moon -->
+          <svg id="modeIcon" viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm10 7h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM3 11H2a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2Zm15.66 7.66-0.7-0.7a1 1 0 1 1 1.41-1.41l0.7 0.7a1 1 0 0 1-1.41 1.41ZM4.63 6.34l-.7-.7A1 1 0 1 1 5.34 4.22l.7.7A1 1 0 0 1 4.63 6.34Zm13.02-2.12.7-.7a1 1 0 0 1 1.41 1.41l-.7.7a1 1 0 0 1-1.41-1.41ZM4.64 19.78l-.7.7a1 1 0 0 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 1.41Z"/></svg>
+        </button>
+        <button class="iconBtn" id="langBtn" aria-label="Cambiar idioma" title="Idioma">ES</button>
+        <button class="iconBtn" id="installBtn" style="display:none" title="Instalar" aria-label="Instalar">
+          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 1.4-1.42L11 12.6V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="search-row">
+      <div class="search"><input id="globalSearch" type="search" placeholder="Buscar cliente o hamaca…" /></div>
+    </div>
+  </header>
+
+  <main>
+    <div class="kpis">
+      <div class="kpi"><span>Ocupación</span> <b id="kpiOcc">0%</b></div>
+      <div class="kpi"><span>Reservas hoy</span> <b id="kpiRes">0</b></div>
+      <div class="kpi"><span>Ingresos est.</span> <b id="kpiRev">0€</b></div>
+    </div>
+
+    <section id="view-map" class="active">
+      <div class="map-head">
+        <div class="row" style="flex:2">
+          <div class="pill" id="datePill"></div>
+          <select id="slotSelect"></select>
+        </div>
+        <div class="row" style="flex:1; justify-content:flex-end">
+          <button class="btn ghost" id="demoBtn">Modo demo</button>
+          <button class="btn" id="newResBtn">Nueva reserva</button>
+        </div>
+      </div>
+      <div class="grid" id="grid" style="--cols:10"></div>
+    </section>
+
+    <section id="view-res">
+      <div class="row" style="margin:.4rem 0">
+        <div class="search"><input id="searchRes" placeholder="Buscar reserva…" /></div>
+        <button class="btn ghost" id="exportJSON">Export JSON</button>
+        <button class="btn ghost" id="exportCSV">Export CSV</button>
+      </div>
+      <div id="resList" style="margin-top:.6rem"></div>
+    </section>
+
+    <section id="view-clients">
+      <div class="row" style="margin:.4rem 0">
+        <div class="search"><input id="searchClients" placeholder="Buscar cliente…" /></div>
+        <button class="btn" id="addClientBtn">Nuevo cliente</button>
+      </div>
+      <div id="clientList" style="margin-top:.6rem"></div>
+    </section>
+
+    <section id="view-reports">
+      <div class="row">
+        <input type="date" id="reportDate">
+        <button class="btn" id="calcReport">Calcular</button>
+      </div>
+      <div id="reportOut" style="margin-top:.6rem"></div>
+    </section>
+
+    <section id="view-settings">
+      <div class="row">
+        <div><label>Filas</label><input type="number" id="rows" min="1" max="50" value="6"></div>
+        <div><label>Columnas</label><input type="number" id="cols" min="1" max="50" value="10"></div>
+        <div><label>Hamacas por sombrilla</label><input type="number" id="perUmb" min="1" max="6" value="2"></div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Zonas (por filas, JSON)</label>
+          <textarea id="zones" rows="3" placeholder='[{"nombre":"Primera línea","fromRow":1,"toRow":1},{"nombre":"Tranquila","fromRow":2,"toRow":6}]'></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Temporadas (JSON)</label>
+          <textarea id="seasons" rows="3" placeholder='[{"nombre":"Alta","inicio":"2025-06-15","fin":"2025-09-15"}]'></textarea>
+        </div>
+        <div>
+          <label>Tarifas (JSON)</label>
+          <textarea id="rates" rows="3" placeholder='[{"tipo":"hamaca","temporada":"Alta","dia":"laborable","€/hora":5},{"tipo":"sombrilla","temporada":"Alta","dia":"laborable","€/hora":3}]'></textarea>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn" id="applyCfg">Aplicar</button>
+        <button class="btn ghost" id="resetCfg">Reset</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom nav: solo iconos en móvil -->
+  <nav aria-label="Navegación inferior">
+    <div class="tabs">
+      <button class="tab active" data-tab="map" aria-label="Mapa" title="Mapa">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6.5 8 4l8 3 5-2.5v12L16 19l-8-3-5 2.5v-12Zm13 1.38-6-2.25v10.5l6 2.25V7.88Z"/></svg>
+        <span class="label" data-i18n="map">Mapa</span>
+      </button>
+      <button class="tab" data-tab="res" aria-label="Reservas" title="Reservas">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1ZM3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm4 3h4v4H7v-4Z"/></svg>
+        <span class="label" data-i18n="bookings">Reservas</span>
+      </button>
+      <button class="tab" data-tab="clients" aria-label="Clientes" title="Clientes">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-8 8.5a7.5 7.5 0 1 1 16 0V21H4Z"/></svg>
+        <span class="label" data-i18n="clients">Clientes</span>
+      </button>
+      <button class="tab" data-tab="reports" aria-label="Reportes" title="Reportes">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h4v16H4V4Zm6 6h4v10h-4V10Zm6-4h4v14h-4V6Z"/></svg>
+        <span class="label" data-i18n="reports">Reportes</span>
+      </button>
+      <button class="tab" data-tab="settings" aria-label="Ajustes" title="Ajustes">
+        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 15.5a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 12 15.5Zm8.94-2.72-1.75-.29a7 7 0 0 0-.6-1.46l1.07-1.42a1 1 0 0 0-.13-1.3l-1.41-1.41a1 1 0 0 0-1.3-.13l-1.42 1.07a7 7 0 0 0-1.46-.6l-.29-1.75A1 1 0 0 0 11 3h-2a1 1 0 0 0-1 .85l-.29 1.75a7 7 0 0 0-1.46.6L4.83 5.13a1 1 0 0 0-1.3.13L2.12 6.67a1 1 0 0 0-.13 1.3l1.07 1.42a7 7 0 0 0-.6 1.46l-1.75.29A1 1 0 0 0 0 13v2a1 1 0 0 0 .85 1l1.75.29a7 7 0 0 0 .6 1.46l-1.07 1.42a1 1 0 0 0 .13 1.3l1.41 1.41a1 1 0 0 0 1.3.13l1.42-1.07a7 7 0 0 0 1.46.6l.29 1.75A1 1 0 0 0 9 24h2a1 1 0 0 0 1-.85l.29-1.75a7 7 0 0 0 1.46-.6l1.42 1.07a1 1 0 0 0 1.3-.13l1.41-1.41a1 1 0 0 0 .13-1.3l-1.07-1.42a7 7 0 0 0 .6-1.46l1.75-.29A1 1 0 0 0 24 15v-2a1 1 0 0 0-.85-1.22Z"/></svg>
+        <span class="label" data-i18n="settings">Ajustes</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Sheet: Reserva -->
+  <div class="sheet" id="sheet">
+    <div class="handle"></div>
+    <form id="resForm">
+      <input type="hidden" id="resId">
+      <div class="row">
+        <div><label data-i18n="date">Fecha</label><input type="date" id="resDate"></div>
+        <div><label>Inicio</label><input type="time" id="resStart" step="1800"></div>
+        <div><label>Fin</label><input type="time" id="resEnd" step="1800"></div>
+      </div>
+      <div class="row">
+        <div><label>Hamaca</label><select id="resSeat"></select></div>
+        <div><label>Cliente</label><select id="resClient"></select></div>
+      </div>
+      <div class="row">
+        <div><label>Personas</label><input type="number" id="resPeople" min="1" value="2"></div>
+        <div><label>Precio estimado</label><input id="resPrice" readonly></div>
+      </div>
+      <div class="row">
+        <div><label>Notas</label><input id="resNotes" placeholder="Opcional"></div>
+      </div>
+      <div class="row">
+        <button class="btn" type="submit">Guardar</button>
+        <button class="btn" type="button" id="checkInBtn">Check-in</button>
+        <button class="btn ghost" type="button" id="cancelBtn">Cancelar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    // i18n
+    const I18N = {
+      es: { map:"Mapa", bookings:"Reservas", clients:"Clientes", reports:"Reportes", settings:"Ajustes", date:"Fecha",
+        saved:"Reserva guardada", created:"Reserva creada", updated:"Reserva actualizada",
+        checkin_ok:"Check-in realizado", cancel_ok:"Reserva cancelada", demo_loaded:"Demo cargada",
+        install:"Instalar", newBooking:"Nueva reserva", allDay:"Todo el día" },
+      en: { map:"Map", bookings:"Bookings", clients:"Customers", reports:"Reports", settings:"Settings", date:"Date",
+        saved:"Booking saved", created:"Booking created", updated:"Booking updated",
+        checkin_ok:"Check-in complete", cancel_ok:"Booking cancelled", demo_loaded:"Demo loaded",
+        install:"Install", newBooking:"New booking", allDay:"All day" }
+    };
+    let lang = (localStorage.getItem('hamaka-lang')||'es'); const t = (k)=> (I18N[lang] && I18N[lang][k]) || k;
+
+    // Theme
+    const palettes = ['beach','ocean','sunset'];
+    let palette = localStorage.getItem('hamaka-palette') || 'beach';
+    let mode = localStorage.getItem('hamaka-mode') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    function applyTheme(){
+      document.body.dataset.palette = palette;
+      document.body.dataset.mode = mode;
+      $('#langBtn').textContent = lang.toUpperCase();
+      $('#modeIcon').innerHTML = mode==='dark'
+        ? '<path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>'
+        : '<path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/>';
+    }
+
+    // State
+    const state = {
+      config: {
+        rows: 6, cols: 10, perUmbrella: 2,
+        zones: [{nombre:"Primera línea", fromRow:1, toRow:1},{nombre:"Tranquila", fromRow:2, toRow:6}],
+        seasons: [
+          {nombre:"Alta", inicio:"2025-06-15", fin:"2025-09-15"},
+          {nombre:"Baja", inicio:"2025-01-01", fin:"2025-06-14"}
+        ],
+        rates: [
+          {tipo:"hamaca", temporada:"Alta", dia:"laborable", "€/hora":5},
+          {tipo:"hamaca", temporada:"Alta", dia:"festivo", "€/hora":6},
+          {tipo:"hamaca", temporada:"Baja", dia:"laborable", "€/hora":4},
+          {tipo:"sombrilla", temporada:"Alta", dia:"laborable", "€/hora":3}
+        ]
+      },
+      hamacas: [], reservas: [], clientes: [],
+      activeDate: new Date(),
+      viewSlot: null, // null = Todo el día
+      slotMinutes: 60,
+      promptEvent: null
+    };
+
+    // Utils
+    const $ = (s, ctx=document)=>ctx.querySelector(s);
+    const $all = (s, ctx=document)=>Array.from(ctx.querySelectorAll(s));
+    const fmtDate = d=>new Date(d).toISOString().slice(0,10);
+    const isWeekend = d=>[0,6].includes(new Date(d).getDay());
+    const uid = (p='')=> p + Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-3);
+    const clamp = (n,min,max)=>Math.max(min, Math.min(max,n));
+    const money = n=> new Intl.NumberFormat(lang, {style:'currency', currency:'EUR'}).format(n||0);
+
+    function save(){ localStorage.setItem('hamaka-data', JSON.stringify({ ...state, promptEvent:undefined })); }
+    function load(){
+      const s = localStorage.getItem('hamaka-data'); if(!s) return;
+      try{
+        const {config, hamacas, reservas, clientes, activeDate} = JSON.parse(s);
+        state.config = config||state.config; state.hamacas = hamacas||[];
+        state.reservas = reservas||[]; state.clientes = clientes||[];
+        state.activeDate = activeDate ? new Date(activeDate) : new Date();
+      }catch(e){ console.warn('No se pudo cargar estado', e) }
+    }
+
+    // Hamacas
+    function genHamacas(){
+      const {rows, cols, zones} = state.config;
+      const list = [];
+      for(let r=1; r<=rows; r++){
+        for(let c=1; c<=cols; c++){
+          const id=`H-${r}-${c}`;
+          const zona = zones.find(z=> r>=z.fromRow && r<=z.toRow)?.nombre || "General";
+          list.push({ id, nombre:`${String.fromCharCode(64+r)}${c}`, posicion:{fila:r,col:c}, zona, estado:'libre', notas:'' });
+        }
+      }
+      state.hamacas = list;
+    }
+
+    // Abreviador de zona para chip pequeño
+    function abbrZona(z){
+      if(!z) return '';
+      const s = z.toLowerCase();
+      if(s.startsWith('primera')) return '1ª';
+      if(s.startsWith('segunda')) return '2ª';
+      if(s.startsWith('central')) return 'C';
+      if(s.startsWith('tranquil')) return 'T';
+      return z[0].toUpperCase();
+    }
+
+    // Icons
+    function loungerIcon(){
+      return `<svg class="svg-lounger" viewBox="0 0 64 64" aria-hidden="true">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#F8FAFC"/></linearGradient></defs>
+        <rect x="18" y="10" width="28" height="44" rx="6" fill="url(#lg)" stroke="#CBD5E1" stroke-width="2"/>
+        <g stroke="#CBD5E1" stroke-width="1">
+          <line x1="20" y1="16" x2="46" y2="16"/><line x1="20" y1="22" x2="46" y2="22"/>
+          <line x1="20" y1="28" x2="46" y2="28"/><line x1="20" y1="34" x2="46" y2="34"/>
+          <line x1="20" y1="40" x2="46" y2="40"/><line x1="20" y1="46" x2="46" y2="46"/>
+        </g>
+      </svg>`;
+    }
+
+    // Rendering
+    function setLang(l){ lang=l; localStorage.setItem('hamaka-lang', l); $('#langBtn').textContent=l.toUpperCase(); $all('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n)); }
+
+    function renderGrid(){
+      const grid = $('#grid'); grid.style.setProperty('--cols', state.config.cols); grid.innerHTML='';
+      if(!state.hamacas.length) genHamacas();
+      const day = fmtDate(state.activeDate);
+      const resDay = state.reservas.filter(r=> r.fecha===day && r.estado!=='cancelada');
+
+      for(const h of state.hamacas){
+        const rNow = activeResForSeat(h.id, resDay, day);
+        const btn = document.createElement('button');
+        btn.type="button"; btn.className = 'lounger ' + cssState(h, resDay, day);
+        btn.setAttribute('data-id', h.id);
+        btn.innerHTML = `
+          <span class="status-dot" style="background:${statusDot(btn.className)}"></span>
+          <span class="zone-tag">${abbrZona(h.zona)}</span>
+          ${rNow && rNow.personas ? `<span class="people-badge">${rNow.personas}</span>`:''}
+          ${loungerIcon()}
+          <div class="id">${h.nombre}</div>`;
+        btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id); });
+        grid.appendChild(btn);
+      }
+      updateKPIs();
+    }
+
+    function statusDot(cn){ if(cn.includes('occupied')) return 'var(--brand)'; if(cn.includes('reserved')) return 'var(--accent)'; if(cn.includes('maint')) return '#94A3B8'; return 'var(--ok)'; }
+
+    function cssState(h, resList, day){
+      if(h.estado==='mantenimiento') return 'maint';
+      const list = resList.filter(r=> r.hamacas?.includes(h.id));
+      if(!list.length) return 'free';
+      const slot = state.viewSlot;
+      const match = slot ? list.some(r=> overlaps(slot, r.franja, day)) : list.length>0;
+      if(!match) return 'free';
+      if(list.some(r=> r.estado==='ocupada')) return 'occupied';
+      return 'reserved';
+    }
+    function activeResForSeat(seatId, resList, day){
+      const slot = state.viewSlot;
+      const list = resList.filter(r=> r.hamacas?.includes(seatId));
+      if(!list.length) return null;
+      if(!slot) return list[0];
+      return list.find(r=> overlaps(slot, r.franja, day)) || null;
+    }
+
+    function timeRange(str){ const [i,f] = str.split('-'); return {inicio:i, fin:f}; }
+    function overlaps(a,b,dateStr){
+      const s1=new Date(`${dateStr}T${a.inicio}`), e1=new Date(`${dateStr}T${a.fin}`);
+      const s2=new Date(`${dateStr}T${b.inicio}`), e2=new Date(`${dateStr}T${b.fin}`);
+      return s1<e2 && s2<e1;
+    }
+
+    function ripple(e){
+      const el = e.currentTarget; const r = document.createElement('span'); r.className='ripple';
+      const rect = el.getBoundingClientRect(); r.style.left = (e.clientX - rect.left)+'px'; r.style.top = (e.clientY - rect.top)+'px';
+      const max = Math.max(rect.width, rect.height); r.style.width = r.style.height = max+'px'; el.appendChild(r); setTimeout(()=> r.remove(), 600);
+    }
+
+    function updateKPIs(){
+      const d = fmtDate(state.activeDate);
+      const res = state.reservas.filter(r=> r.fecha===d && r.estado!=='cancelada');
+      const occNow = state.hamacas.filter(h=> cssState(h, res, d)!=='free').length;
+      const occPct = state.hamacas.length ? Math.round(occNow/state.hamacas.length*100) : 0;
+      $('#kpiOcc').textContent = occPct+'%';
+      $('#kpiRes').textContent = res.length;
+      const rev = res.reduce((acc,r)=> acc + (r.precio||0), 0);
+      $('#kpiRev').textContent = money(rev);
+    }
+
+    function renderSlots(){
+      const sel = $('#slotSelect'); sel.innerHTML='';
+      const optAll = document.createElement('option'); optAll.value='ALL'; optAll.textContent = t('allDay'); sel.appendChild(optAll);
+      for(let h=8; h<=20; h++){ const end = h + state.slotMinutes/60; const v = `${String(h).padStart(2,'0')}:00-${String(end).padStart(2,'0')}:00`; const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }
+      sel.value='ALL'; $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+    }
+
+    // Sheet
+    function openSheetFor(hamacaId=null){
+      const sh = $('#sheet'), f = $('#resForm'); f.reset();
+      $('#resId').value=''; $('#resDate').value = fmtDate(state.activeDate); $('#resStart').value='09:00'; $('#resEnd').value='13:00'; $('#resPeople').value=2;
+      renderSeatOptions(hamacaId); renderClientOptions(); calcPrice(); sh.classList.add('active');
+    }
+    function closeSheet(){ $('#sheet').classList.remove('active') }
+    function renderSeatOptions(selected){
+      const sel = $('#resSeat'); sel.innerHTML = state.hamacas.map(h=> `<option value="${h.id}" ${h.id===selected?'selected':''}>${h.nombre} — ${h.zona}</option>`).join('');
+    }
+    function renderClientOptions(){
+      const sel = $('#resClient'); sel.innerHTML = '<option value="">— Nuevo cliente —</option>' + state.clientes.map(c=> `<option value="${c.id}">${c.nombre}</option>`).join('');
+    }
+
+    function calcPrice(){
+      const d = $('#resDate').value, inicio = $('#resStart').value, fin = $('#resEnd').value;
+      const horas = Math.max(0, (new Date(`${d}T${fin}`)-new Date(`${d}T${inicio}`))/3600000);
+      const temporada = seasonName(d); const dia = isWeekend(d) ? 'festivo' : 'laborable';
+      const th = state.config.rates.find(r=> r.tipo==='hamaca' && r.temporada===temporada && r.dia===dia);
+      const ts = state.config.rates.find(r=> r.tipo==='sombrilla' && r.temporada===temporada && r.dia===dia);
+      const base = (th?th["€/hora"]:4) * horas;
+      const seatId = $('#resSeat').value;
+      const isPair = seatId && Number(seatId.split('-')[2]) % state.config.perUmbrella === 0;
+      const extra = isPair && ts ? ts["€/hora"]*horas : 0;
+      const price = Math.max(0, Math.round((base + extra)*100)/100);
+      $('#resPrice').value = price.toFixed(2)+'€'; return price;
+    }
+    function seasonName(dateStr){
+      const d = new Date(dateStr);
+      for(const s of state.config.seasons){ const i=new Date(s.inicio), f=new Date(s.fin); if(d>=i && d<=f) return s.nombre; }
+      return 'Baja';
+    }
+
+    // CRUD Reserva
+    $('#resForm').addEventListener('input', (e)=> { if(['resDate','resStart','resEnd','resSeat'].includes(e.target.id)) calcPrice(); });
+    $('#resForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const id = $('#resId').value || uid('R-');
+      let clienteId = $('#resClient').value;
+      if(!clienteId){
+        const nombre = prompt('Nombre del cliente:','Cliente demo'); if(!nombre) return;
+        const c = { id: uid('C-'), nombre }; state.clientes.push(c); clienteId = c.id;
+      }
+      const reserva = {
+        id, fecha: $('#resDate').value,
+        franja: {inicio:$('#resStart').value, fin:$('#resEnd').value},
+        hamacas: [$('#resSeat').value],
+        personas: Math.max(1, parseInt($('#resPeople').value)||1),
+        clienteId, precio: parseFloat($('#resPrice').value), estado:'reservada',
+        notas: $('#resNotes').value||''
+      };
+      const overlap = state.reservas.find(r=> r.id!==id && r.fecha===reserva.fecha && r.hamacas.some(h=> reserva.hamacas.includes(h)) && overlaps(reserva.franja, r.franja, reserva.fecha) && r.estado!=='cancelada');
+      if(overlap){ toast('Solape detectado: elige otra franja o hamaca'); return; }
+
+      const ix = state.reservas.findIndex(r=> r.id===id);
+      if(ix>=0) state.reservas[ix]=reserva; else state.reservas.push(reserva);
+      save(); renderAll(); closeSheet(); toast(ix>=0? t('updated') : t('created')); flashLounger(reserva.hamacas[0]);
+    });
+    function flashLounger(id){ const el = document.querySelector(`.lounger[data-id="${id}"]`); if(!el) return; el.classList.add('flash'); setTimeout(()=> el.classList.remove('flash'), 420); }
+
+    $('#checkInBtn').addEventListener('click', ()=>{
+      const id = $('#resId').value; if(!id) return;
+      const r = state.reservas.find(x=>x.id===id); if(!r) return; r.estado='ocupada';
+      save(); renderAll(); toast(t('checkin_ok')); flashLounger(r.hamacas[0]);
+    });
+    $('#cancelBtn').addEventListener('click', ()=>{
+      const id = $('#resId').value; if(!id){ closeSheet(); return; }
+      const r = state.reservas.find(x=>x.id===id); if(!r) return; r.estado='cancelada';
+      save(); renderAll(); closeSheet(); toast(t('cancel_ok'));
+    });
+
+    // Lists
+    function renderReservas(){
+      const box = $('#resList'); const q = ($('#searchRes').value||'').toLowerCase();
+      const list = state.reservas.filter(r=>{
+        const c = state.clientes.find(x=>x.id===r.clienteId)?.nombre?.toLowerCase()||'';
+        const h = r.hamacas.map(id=> state.hamacas.find(x=>x.id===id)?.nombre).join(',').toLowerCase();
+        return [r.fecha, c, h].some(s=> (s||'').includes(q));
+      }).sort((a,b)=> a.fecha.localeCompare(b.fecha)|| a.franja.inicio.localeCompare(b.franja.inicio));
+      box.innerHTML = list.map(r=>{
+        const c = state.clientes.find(x=>x.id===r.clienteId)?.nombre||'—';
+        const h = r.hamacas.map(id=> state.hamacas.find(x=>x.id===id)?.nombre).join(', ');
+        return `<div class="kpi" style="margin:.35rem 0">
+          <div><b>${r.fecha}</b> ${r.franja.inicio}-${r.franja.fin} · <b>${h}</b> · ${c} · 👥 ${r.personas||1}</div>
+          <div><button class="btn ghost" data-edit="${r.id}">Editar</button></div>
+        </div>`;
+      }).join('') || '<div class="kpi">Sin reservas</div>';
+      $all('[data-edit]').forEach(b=> b.addEventListener('click', ()=> editReserva(b.dataset.edit)));
+    }
+    function editReserva(id){
+      const r = state.reservas.find(x=>x.id===id); if(!r) return;
+      openSheetFor(r.hamacas[0]); $('#resId').value=r.id; $('#resDate').value=r.fecha; $('#resStart').value=r.franja.inicio; $('#resEnd').value=r.franja.fin;
+      $('#resSeat').value=r.hamacas[0]; renderClientOptions(); $('#resClient').value=r.clienteId; $('#resNotes').value=r.notas||''; $('#resPeople').value=r.personas||1; $('#resPrice').value=(r.precio||0).toFixed(2)+'€';
+    }
+
+    // Reports
+    $('#calcReport').addEventListener('click', ()=>{
+      const date = $('#reportDate').value || fmtDate(new Date());
+      const res = state.reservas.filter(r=> r.fecha===date && r.estado!=='cancelada');
+      const ocp = new Set(res.flatMap(r=>r.hamacas)).size;
+      const rev = res.reduce((a,r)=>a+(r.precio||0),0);
+      $('#reportOut').innerHTML = `<div class="kpi">Ocupación (únicas): <b>${ocp}</b> / ${state.hamacas.length} · Reservas: <b>${res.length}</b> · Ingresos est.: <b>${rev.toFixed(2)}€</b></div>`;
+    });
+
+    // Export
+    $('#exportJSON').addEventListener('click', ()=> download('hamaka-data.json', JSON.stringify({hamacas:state.hamacas, reservas:state.reservas, clientes:state.clientes}, null, 2), 'application/json'));
+    $('#exportCSV').addEventListener('click', ()=>{
+      const rows = [['id','fecha','inicio','fin','hamacas','cliente','personas','precio','estado']];
+      for(const r of state.reservas){ rows.push([r.id, r.fecha, r.franja.inicio, r.franja.fin, r.hamacas.join('|'), (state.clientes.find(c=>c.id===r.clienteId)?.nombre)||'', r.personas||1, r.precio, r.estado]); }
+      const csv = rows.map(r=> r.map(x=> `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+      download('reservas.csv', csv, 'text/csv;charset=utf-8;');
+    });
+    function download(name, content, type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content], {type})); a.download=name; a.click(); setTimeout(()=> URL.revokeObjectURL(a.href), 1000); }
+
+    // Settings
+    $('#applyCfg').addEventListener('click', ()=>{
+      try{
+        state.config.rows = clamp(parseInt($('#rows').value)||6, 1, 50);
+        state.config.cols = clamp(parseInt($('#cols').value)||10, 1, 50);
+        state.config.perUmbrella = clamp(parseInt($('#perUmb').value)||2, 1, 6);
+        state.config.zones = JSON.parse($('#zones').value || '[]');
+        state.config.seasons = JSON.parse($('#seasons').value || '[]');
+        state.config.rates = JSON.parse($('#rates').value || '[]');
+        genHamacas(); save(); renderAll(); toast('Configuración aplicada');
+      }catch(e){ toast('Error en JSON de configuración'); }
+    });
+    $('#resetCfg').addEventListener('click', ()=> { localStorage.removeItem('hamaka-data'); location.reload(); });
+
+    // Tabs
+    $all('.tab').forEach(b=> b.addEventListener('click', ()=>{
+      $all('.tab').forEach(x=> x.classList.toggle('active', x===b));
+      $all('main section').forEach(s=> s.classList.remove('active'));
+      $('#view-'+b.dataset.tab).classList.add('active');
+      if(b.dataset.tab==='map') renderGrid();
+      if(b.dataset.tab==='res') renderReservas();
+      if(b.dataset.tab==='clients') renderClientes();
+    }));
+
+    // Global search highlight
+    $('#globalSearch').addEventListener('input', ()=>{
+      const q = ($('#globalSearch').value||'').toLowerCase();
+      const found = state.hamacas.find(h=> h.nombre.toLowerCase().includes(q));
+      if(found) highlight(found.id);
+    });
+    function highlight(id){
+      const el = $(`.lounger[data-id="${id}"]`); if(!el) return;
+      el.style.outline=`2px solid var(--secondary)`; el.style.outlineOffset='2px';
+      setTimeout(()=> { el.style.outline=''; el.style.outlineOffset=''; }, 900);
+    }
+
+    // Demo
+    $('#demoBtn').addEventListener('click', loadDemo);
+    function loadDemo(){
+      state.clientes = [{id:'C-1', nombre:'Laura Pérez'},{id:'C-2', nombre:'John Smith'},{id:'C-3', nombre:'Ana Ruiz'}];
+      state.config.rows=6; state.config.cols=12; state.config.zones=[{nombre:'Primera línea',fromRow:1,toRow:1},{nombre:'Central',fromRow:2,toRow:3},{nombre:'Tranquila',fromRow:4,toRow:6}];
+      genHamacas();
+      const today = fmtDate(new Date());
+      state.reservas = [
+        {id:'R-1', fecha:today, franja:{inicio:'09:00',fin:'12:00'}, hamacas:['H-1-3'], clienteId:'C-1', personas:2, precio:18, estado:'reservada'},
+        {id:'R-2', fecha:today, franja:{inicio:'10:00',fin:'14:00'}, hamacas:['H-1-4'], clienteId:'C-2', personas:3, precio:24, estado:'ocupada'}
+      ];
+      save(); renderAll(); toast(t('demo_loaded')); flashLounger('H-1-3'); flashLounger('H-1-4');
+    }
+
+    // Slots selector
+    $('#slotSelect').addEventListener('change', (e)=>{ const v=e.target.value; state.viewSlot = (v==='ALL') ? null : timeRange(v); renderGrid(); });
+
+    // Header actions
+    $('#paletteBtn').addEventListener('click', ()=>{
+      const i = palettes.indexOf(palette); palette = palettes[(i+1)%palettes.length]; localStorage.setItem('hamaka-palette', palette); applyTheme();
+      toast('Paleta: '+palette);
+    });
+    $('#modeBtn').addEventListener('click', ()=>{
+      mode = mode==='dark' ? 'light' : 'dark'; localStorage.setItem('hamaka-mode', mode); applyTheme();
+    });
+    $('#langBtn').addEventListener('click', ()=> { setLang(lang==='es'?'en':'es'); renderAll(); });
+    $('#newResBtn').addEventListener('click', ()=> openSheetFor());
+    $('#searchRes').addEventListener('input', renderReservas);
+    $('#searchClients').addEventListener('input', renderClientes);
+
+    // PWA install
+    window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); state.promptEvent = e; $('#installBtn').style.display='inline-grid'; });
+    $('#installBtn').addEventListener('click', async ()=>{
+      if(state.promptEvent){ state.promptEvent.prompt(); const choice = await state.promptEvent.userChoice; if(choice.outcome==='accepted') $('#installBtn').style.display='none'; }
+    });
+
+    // Service Worker
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', ()=> {
+        navigator.serviceWorker.register('./sw.js').then(reg=>{
+          if(reg.waiting){ showUpdate(reg.waiting); }
+          reg.addEventListener('updatefound', ()=> {
+            const newW = reg.installing;
+            newW.addEventListener('statechange', ()=> {
+              if(newW.state === 'installed' && navigator.serviceWorker.controller){ showUpdate(newW); }
+            });
+          });
+          let refreshing=false;
+          navigator.serviceWorker.addEventListener('controllerchange', ()=> { if(refreshing) return; refreshing=true; location.reload(); });
+        }).catch(console.warn);
+      });
+    }
+    function showUpdate(worker){
+      const div = document.createElement('div'); div.className='toast show';
+      div.textContent = 'Nueva versión disponible. Actualizar'; div.style.background = 'var(--secondary)'; div.style.cursor='pointer';
+      div.onclick = ()=> { worker.postMessage({action:'skipWaiting'}); div.remove(); };
+      document.body.appendChild(div); setTimeout(()=> div.classList.remove('show'), 5000);
+    }
+
+    function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2000); }
+
+    function renderAll(){
+      $('#rows').value = state.config.rows; $('#cols').value = state.config.cols; $('#perUmb').value = state.config.perUmbrella;
+      $('#zones').value = JSON.stringify(state.config.zones||[], null, 2);
+      $('#seasons').value = JSON.stringify(state.config.seasons||[], null, 2);
+      $('#rates').value = JSON.stringify(state.config.rates||[], null, 2);
+      $all('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n));
+      applyTheme(); renderSlots(); renderGrid(); renderReservas(); renderClientes();
+      $('#reportDate').value = fmtDate(new Date()); $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+    }
+
+    // Prime
+    load(); if(!state.hamacas.length) genHamacas(); renderAll();
+  </script>
+</body>
+</html>
