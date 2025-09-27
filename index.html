@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-mode="auto" data-theme="turquoise" data-mapmode="aerial">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -8,157 +8,163 @@
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <title>HAMAKA — Gestión de hamacas</title>
   <style>
-    /* THEME TOKENS */
+    /* Paletas y modos */
     :root{
-      --radius:16px; --shadow: 0 10px 30px rgba(0,0,0,.08);
-      --tile-min:clamp(78px, 22vw, 118px);
-      --font: -apple-system, system-ui, Segoe UI, Inter, Roboto, Arial, sans-serif;
-      --trans-fast: .18s ease; --trans-med:.28s cubic-bezier(.2,.9,.2,1);
+      /* Paleta base (turquoise) */
+      --sea:#0EB1C7; --sea-2:#6FD6E3; --shore:#F9E2B0; --sand:#F4E5C3; --dune:#E8D5A9;
+      --accent:#00BFA6; --accent-2:#1576EA; --accent-3:#FF6B6B;
+      --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
+      --bg:#F7FAFC; --card:#ffffff; --muted:#E6E8EF;
+      --ok:#16A34A; --warn:#F59E0B;
+      --radius:16px; --shadow: 0 10px 30px rgba(0,0,0,.08); --blur: saturate(140%) blur(10px);
+      --tile-min:clamp(72px, 22vw, 110px);
+      --tab-size: 24px;
     }
-    body{ margin:0; font:16px/1.25 var(--font); }
-    /* Paletas + modos: Beach (default), Ocean, Sunset */
-    body[data-palette="beach"][data-mode="light"]{
-      --bg:#FCF7F1; --card:#FFFFFF; --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
-      --muted:#E8E1D6; --pill-bg:#FFF2DF; --pill-fg:#5F4B32;
-      --brand:#00BFA6; --accent:#FF7B6E; --secondary:#1576EA; --ok:#10B981; --warn:#F59E0B;
-      --wave1: rgba(255,203,164,.35); --wave2: rgba(0,191,166,.18);
+    [data-theme="sunset"]{
+      --sea:#FF8C6A; --sea-2:#FFD1C3; --shore:#FFE3B0; --sand:#F8E6C8; --dune:#EED4A7;
+      --accent:#FF6B6B; --accent-2:#FF9F1C; --accent-3:#1565C0;
     }
-    body[data-palette="beach"][data-mode="dark"]{
-      --bg:#0E1016; --card:#0F172A; --ink:#E6EDF7; --ink-2:#C9D4E3; --ink-3:#9AA9BD;
-      --muted:#29334A; --pill-bg:#1E293B; --pill-fg:#E6EDF7;
-      --brand:#00BFA6; --accent:#FF7B6E; --secondary:#69A7FF; --ok:#34D399; --warn:#FBBF24;
-      --wave1: rgba(255,203,164,.14); --wave2: rgba(0,191,166,.12);
+    [data-theme="sand"]{
+      --sea:#3DB2FF; --sea-2:#A7E0FF; --shore:#FFE6B3; --sand:#F7EAD9; --dune:#E6D2AE;
+      --accent:#F59E0B; --accent-2:#10B981; --accent-3:#2563EB;
     }
-    body[data-palette="ocean"][data-mode="light"]{
-      --bg:#F4FAFF; --card:#FFFFFF; --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B;
-      --muted:#E3EAF3; --pill-bg:#E8F6FF; --pill-fg:#0B3B5E;
-      --brand:#0EA5E9; --accent:#22D3EE; --secondary:#2563EB; --ok:#10B981; --warn:#F59E0B;
-      --wave1: rgba(14,165,233,.18); --wave2: rgba(34,211,238,.18);
-    }
-    body[data-palette="ocean"][data-mode="dark"]{
-      --bg:#0B1220; --card:#0F172A; --ink:#E6EDF7; --ink-2:#C9D4E3; --ink-3:#9AA9BD;
-      --muted:#263045; --pill-bg:#122035; --pill-fg:#E6EDF7;
-      --brand:#38BDF8; --accent:#22D3EE; --secondary:#69A7FF; --ok:#34D399; --warn:#FBBF24;
-      --wave1: rgba(14,165,233,.12); --wave2: rgba(34,211,238,.12);
-    }
-    body[data-palette="sunset"][data-mode="light"]{
-      --bg:#FFF7F4; --card:#FFFFFF; --ink:#121417; --ink-2:#323A45; --ink-3:#6B7280;
-      --muted:#F1E4E0; --pill-bg:#FFEDE6; --pill-fg:#6A3A2E;
-      --brand:#FB7185; --accent:#F59E0B; --secondary:#8B5CF6; --ok:#22C55E; --warn:#F59E0B;
-      --wave1: rgba(251,113,133,.22); --wave2: rgba(245,158,11,.16);
-    }
-    body[data-palette="sunset"][data-mode="dark"]{
-      --bg:#121018; --card:#171424; --ink:#F3F4F6; --ink-2:#D1D5DB; --ink-3:#9CA3AF;
-      --muted:#302A3E; --pill-bg:#2B2336; --pill-fg:#F3F4F6;
-      --brand:#FB7185; --accent:#F59E0B; --secondary:#A78BFA; --ok:#34D399; --warn:#FBBF24;
-      --wave1: rgba(251,113,133,.12); --wave2: rgba(245,158,11,.10);
-    }
+    /* Modo oscuro manual (o auto) */
+    @media (prefers-color-scheme: dark){ :root[data-mode="auto"]{ --bg:#0B1220; --card:#0F172A; --ink:#E5E7EB; --ink-2:#CBD5E1; --ink-3:#94A3B8; --muted:#263045; --shadow: 0 14px 40px rgba(0,0,0,.5) } }
+    :root[data-mode="dark"]{ --bg:#0B1220; --card:#0F172A; --ink:#E5E7EB; --ink-2:#CBD5E1; --ink-3:#94A3B8; --muted:#263045; --shadow: 0 14px 40px rgba(0,0,0,.5) }
+    :root[data-mode="light"]{ --bg:#F7FAFC; --card:#ffffff; --ink:#0F172A; --ink-2:#334155; --ink-3:#64748B; --muted:#E6E8EF }
 
-    /* Ocean/Beach background */
-    .ocean{ position:fixed; inset:-40vh -15vw auto -15vw; height:52vh; pointer-events:none; z-index:-1;
-      background: radial-gradient(1200px 420px at 50% 90%, var(--wave1), transparent 60%),
-                  linear-gradient(120deg, var(--wave2), transparent 55%);
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font:16px/1.25 -apple-system, system-ui, Segoe UI, Inter, Roboto, Arial, sans-serif;}
+
+    /* Fondo “playa” (vista aérea) */
+    .ocean{ position:fixed; inset:-40vh -15vw auto -15vw; height:50vh; pointer-events:none; z-index:-1;
+      background:
+        radial-gradient(1200px 400px at 50% 90%, color-mix(in oklab, var(--sea) 35%, transparent), transparent 60%),
+        linear-gradient(140deg, color-mix(in oklab, var(--sea-2) 40%, transparent), transparent 55%);
       filter: blur(28px) saturate(120%); animation: swell 18s ease-in-out infinite alternate;
     }
     @keyframes swell{ from{ transform: translateY(-4%) } to{ transform: translateY(3%) } }
 
     header{
-      position:sticky; top:0; z-index:10; backdrop-filter: saturate(140%) blur(10px);
-      background: color-mix(in oklab, var(--card) 82%, transparent);
+      position:sticky; top:0; z-index:10; backdrop-filter: var(--blur);
+      background: color-mix(in oklab, var(--card) 80%, transparent);
       border-bottom:1px solid var(--muted);
-      padding: .65rem max(1rem, env(safe-area-inset-left));
+      padding: .6rem max(1rem, env(safe-area-inset-left));
     }
-    .header-top{ display:flex; align-items:center; gap:.75rem }
-    .logo{ display:flex; align-items:center; gap:.6rem; font-weight:800; letter-spacing:.2px; color:var(--ink)}
-    .logo svg{ width:26px; height:26px }
-    .chip{ padding:.32rem .55rem; border-radius:999px; background:var(--pill-bg); color:var(--pill-fg); font-size:.72rem }
-    .actions{ margin-left:auto; display:flex; gap:.4rem }
-    .iconBtn{ appearance:none; border:1px solid var(--muted); background:var(--card); color:var(--ink); border-radius:12px; width:40px; height:40px; display:grid; place-items:center; cursor:pointer; transition: transform var(--trans-fast) }
-    .iconBtn:active{ transform: scale(.97) }
-    .search-row{ margin-top:.55rem }
-    .search input{ width:100%; padding:.75rem .9rem; border-radius:14px; border:1px solid var(--muted); background:var(--card); color:var(--ink) }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:.75rem }
+    .logo{ display:flex; align-items:center; gap:.6rem; font-weight:800; letter-spacing:.2px }
+    .logo svg{ width:28px; height:28px }
+    .chip{ padding:.35rem .65rem; border-radius:999px; background:var(--shore); color:#3b3b3b; font-size:.75rem }
+    .actions{ display:flex; gap:.4rem; align-items:center }
+    .icon-btn{
+      height:36px; width:36px; display:inline-grid; place-items:center;
+      border-radius:12px; border:1px solid var(--muted); background:var(--card); cursor:pointer;
+      transition: transform .15s ease, background .2s ease; box-shadow: none;
+    }
+    .icon-btn:active{ transform: translateY(1px) scale(.98) }
+    .icon-btn svg{ width:18px; height:18px }
+    .searchbar{ margin-top:.5rem }
+    .searchbar input{
+      width:100%; padding:.7rem .9rem; border-radius:14px; border:1px solid var(--muted);
+      background:var(--card); color:var(--ink); box-shadow: inset 0 0 0 1px rgba(255,255,255,.4);
+    }
 
-    main{ background:var(--bg); color:var(--ink); padding: .9rem; padding-bottom: calc(84px + env(safe-area-inset-bottom)); max-width:1100px; margin:0 auto }
-
-    /* KPIs compact */
-    .kpis{ display:flex; gap:.6rem; flex-wrap:wrap; margin:.7rem 0 }
+    main{ padding: 1rem; padding-bottom: calc(86px + env(safe-area-inset-bottom)); max-width:1100px; margin:0 auto }
+    .kpis{ display:flex; gap:.6rem; flex-wrap:wrap; margin-bottom:.7rem }
     .kpi{ flex:1; min-width:140px; display:flex; align-items:center; justify-content:space-between; gap:.4rem; background:var(--card);
       border:1px solid var(--muted); border-radius:14px; padding:.55rem .8rem; box-shadow: var(--shadow); }
 
-    /* Map header */
+    /* Head de mapa */
     .map-head{ display:flex; gap:.6rem; align-items:center; justify-content:space-between; flex-wrap:wrap; margin-bottom:.6rem }
-    .pill{ padding:.35rem .65rem; border-radius:999px; font-size:.8rem; border:1px solid var(--muted); background:var(--card); color:var(--ink) }
-    .btn{ appearance:none; border:0; border-radius:14px; padding:.7rem 1rem; font-weight:700; cursor:pointer; transition: transform var(--trans-fast), background .2s ease;
-      background:var(--brand); color:#fff; box-shadow: var(--shadow) }
-    .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--muted) }
+    .pill{ padding:.35rem .65rem; border-radius:999px; font-size:.8rem; border:1px solid var(--muted); background:var(--card) }
+    .btn{ appearance:none; border:0; border-radius:14px; padding:.7rem 1rem; font-weight:700; cursor:pointer; transition: transform .15s ease, filter .15s ease, background .2s ease; box-shadow: var(--shadow) }
+    .btn.primary{ background:var(--accent); color:#fff }
+    .btn.ghost{ background:transparent; color:var(--ink); border:1px solid var(--muted); box-shadow:none }
 
-    /* Grid responsive */
-    .grid{ display:grid; gap:.65rem; grid-template-columns: repeat(var(--cols), minmax(var(--tile-min), 1fr)); }
+    /* Vista playa */
+    .beach{
+      position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--muted);
+      background:
+        radial-gradient(800px 200px at 50% -40px, var(--sea) 35%, transparent 40%),
+        linear-gradient(180deg, color-mix(in oklab, var(--sand) 85%, var(--shore) 15%), var(--dune));
+      box-shadow: var(--shadow);
+      padding: 16px; /* margen interior para la orilla */
+    }
+    .beach::before{ /* orilla ondulada */
+      content:""; position:absolute; inset:0; height:32%; left:0; right:0; top:0; pointer-events:none;
+      background: conic-gradient(from 200deg at 50% 100%, rgba(255,255,255,.55), rgba(255,255,255,.0) 30%);
+      mix-blend-mode: soft-light;
+    }
+    .boardwalk{ /* pasarela inferior */
+      position:absolute; left:0; right:0; bottom:0; height:24px; background:
+        repeating-linear-gradient(90deg, #B08968 0 16px, #A37B5E 16px 17px);
+      opacity:.35; pointer-events:none;
+    }
+
+    /* Grid y Aérea */
+    .grid{ display:grid; gap:.6rem; grid-template-columns: repeat(var(--cols), minmax(var(--tile-min), 1fr)); }
     @media (max-width: 640px){
       .grid{ grid-template-columns: repeat(auto-fill, minmax(min(120px, 33vw), 1fr)); }
     }
+    .aerial{ position:relative; height:auto; min-height: 60vh; }
+    .aerial .lounger{ position:absolute }
 
-    /* Lounger tile */
+    /* Hamaca */
     .lounger{
-      position:relative; isolation:isolate; display:flex; flex-direction:column; align-items:center; justify-content:center;
-      min-height: clamp(88px, 14vw, 138px);
-      border-radius:16px; border:1px solid color-mix(in oklab, var(--muted) 72%, transparent);
-      background: linear-gradient(180deg, color-mix(in oklab, var(--card) 96%, transparent), color-mix(in oklab, var(--card) 85%, transparent));
-      overflow:hidden; user-select:none;
-      box-shadow: 0 1px 0 rgba(0,0,0,.04);
-      transition: transform var(--trans-fast), box-shadow var(--trans-fast), border-color .2s ease, outline-color .2s ease;
+      isolation:isolate; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-height: clamp(86px, 14vw, 132px); padding-top:6px;
+      border-radius:16px; border:1px solid var(--muted); background:var(--card); overflow:hidden; user-select:none;
+      box-shadow: 0 1px 0 rgba(0,0,0,.05);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .2s ease, background .2s ease, outline-color .2s ease;
+      will-change: transform;
     }
     .lounger:hover{ transform: translateY(-2px) }
-    .lounger .id{ font-size:.92rem; font-weight:800; letter-spacing:.2px; margin-top:.15rem }
-    .status-dot{ position:absolute; top:8px; right:8px; width:10px; height:10px; border-radius:50%; box-shadow: 0 0 0 3px rgba(0,0,0,.06) }
-    .zone-tag{ position:absolute; top:8px; left:8px; font-size:.68rem; padding:.18rem .4rem; border-radius:999px; background:var(--pill-bg); color:var(--pill-fg); border:1px solid color-mix(in oklab, var(--muted) 60%, transparent) }
-    .people-badge{ position:absolute; bottom:8px; left:8px; min-width:22px; height:22px; border-radius:999px; display:grid; place-items:center;
-      background: color-mix(in oklab, var(--secondary) 92%, transparent); color:#fff; font-weight:800; font-size:.75rem; letter-spacing:.2px }
+    .lounger .id{ font-size:.9rem; font-weight:800; letter-spacing:.2px }
+    .status-dot{ position:absolute; top:8px; right:8px; width:12px; height:12px; border-radius:50%; box-shadow: 0 0 0 3px rgba(0,0,0,.06) }
+    .zone-badge{ position:absolute; top:8px; left:8px; font-size:.62rem; padding:.15rem .35rem; border-radius:999px; border:1px solid var(--muted); background:rgba(255,255,255,.7); backdrop-filter: blur(6px) }
+    .people{ position:absolute; bottom:8px; left:8px; display:flex; align-items:center; gap:.2rem; font-size:.7rem; font-weight:700; background:rgba(255,255,255,.7); border:1px solid var(--muted); border-radius:999px; padding:.15rem .4rem; }
+    .people svg{ width:12px; height:12px }
     .lounger .svg-lounger{ width:52%; opacity:.95 }
-    .lounger.flash{ animation: pop var(--trans-med) }
-    @keyframes pop{ from{ transform: scale(.96); box-shadow: 0 0 0 rgba(0,0,0,0) } to{ transform: scale(1); box-shadow: var(--shadow) } }
-
-    /* States */
     .lounger.free{ border-color: rgba(16,185,129,.35) }
-    .lounger.reserved{ background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 12%, var(--card)), var(--card)); border-color: color-mix(in oklab, var(--accent) 42%, var(--muted)) }
-    .lounger.occupied{ background: linear-gradient(180deg, color-mix(in oklab, var(--brand) 12%, var(--card)), var(--card)); border-color: color-mix(in oklab, var(--brand) 42%, var(--muted)) }
-    .lounger.maint{ background: linear-gradient(180deg, color-mix(in oklab, #94A3B8 16%, var(--card)), var(--card)); border-style:dashed }
-
-    /* Ripple */
+    .lounger.reserved{ background: linear-gradient(180deg, color-mix(in oklab, var(--accent-3) 10%, var(--card)), color-mix(in oklab, var(--accent-3) 5%, var(--card))); border-color: color-mix(in oklab, var(--accent-3) 50%, var(--muted)) }
+    .lounger.occupied{ background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 12%, var(--card)), color-mix(in oklab, var(--accent) 5%, var(--card))); border-color: color-mix(in oklab, var(--accent) 55%, var(--muted)) }
+    .lounger.maint{ background: linear-gradient(180deg, rgba(148,163,184,.18), rgba(148,163,184,.08)); border-style:dashed }
+    .lounger.flash{ animation: pop .28s cubic-bezier(.2,.9,.2,1) }
+    @keyframes pop{ from{ transform: scale(.96); box-shadow: 0 0 0 rgba(0,0,0,0) } to{ transform: scale(1); box-shadow: var(--shadow) } }
     .ripple{ position:absolute; border-radius:50%; transform: scale(0); background: rgba(255,255,255,.7); mix-blend-mode: overlay; animation: ripple .6s ease-out; pointer-events:none }
     @keyframes ripple{ to{ transform: scale(6); opacity:0 } }
 
-    /* Bottom sheet */
+    .card{ background:var(--card); border:1px solid var(--muted); border-radius: var(--radius); padding:1rem; box-shadow: var(--shadow) }
+    .row{ display:flex; gap:.7rem; align-items:center; flex-wrap:wrap }
+    .row > *{ flex:1 }
+
+    /* Nav inferior: solo iconos en mobile */
+    nav{ position:fixed; left:0; right:0; bottom:0; z-index:10; padding: .5rem max(1rem, env(safe-area-inset-left));
+      padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); background: color-mix(in oklab, var(--card) 78%, transparent); backdrop-filter: var(--blur); border-top:1px solid var(--muted) }
+    .tabs{ display:flex; gap:.5rem; justify-content:space-between }
+    .tab{ flex:1; display:flex; align-items:center; justify-content:center; gap:.4rem; background:transparent; color:var(--ink);
+      border:1px solid var(--muted); border-radius:14px; min-height:50px; cursor:pointer; }
+    .tab svg{ width:var(--tab-size); height:var(--tab-size) }
+    .tab.active{ background: var(--accent-2); color:#fff; border-color: transparent }
+    .tab span{ display:inline }
+    @media (max-width:640px){ .tab span{ display:none } .tab{ min-height:54px } }
+
+    section{ display:none }
+    section.active{ display:block; animation: fade .22s ease }
+    @keyframes fade{ from{ opacity:0; transform: translateY(6px) } }
+
     .sheet{ position:fixed; left:0; right:0; bottom:-100%; background:var(--card);
       border-top-left-radius:22px; border-top-right-radius:22px; box-shadow: 0 -20px 60px rgba(0,0,0,.35); padding:1rem; z-index:20;
       transition: transform .34s cubic-bezier(.2,.8,.2,1), bottom .34s; transform: translateY(100%); max-height: 92vh; overflow:auto;
-      border-top:1px solid var(--muted);
     }
     .sheet.active{ bottom:0; transform: translateY(0) }
     .sheet .handle{ width:56px; height:5px; background:var(--muted); border-radius:999px; margin:.2rem auto 1rem }
     label{ font-size:.85rem; color:var(--ink-3); display:block; margin-bottom:.25rem }
-    input, select, textarea{ width:100%; border:1px solid var(--muted); border-radius:12px; padding:.65rem .75rem; background:var(--card); color:var(--ink) }
-    .row{ display:flex; gap:.7rem; align-items:center; flex-wrap:wrap }
-    .row > *{ flex:1 }
-
-    /* Nav bottom (solo iconos en móvil) */
-    nav{ position:fixed; left:0; right:0; bottom:0; z-index:10; padding: .5rem max(1rem, env(safe-area-inset-left));
-      padding-bottom: calc(.5rem + env(safe-area-inset-bottom)); background: color-mix(in oklab, var(--card) 88%, transparent);
-      backdrop-filter: saturate(140%) blur(10px); border-top:1px solid var(--muted) }
-    .tabs{ display:flex; gap:.5rem; justify-content:space-between }
-    .tab{ flex:1; display:flex; align-items:center; justify-content:center; gap:.45rem; background:transparent; color:var(--ink); border:1px solid var(--muted);
-      border-radius:14px; min-height:52px; cursor:pointer; transition: transform var(--trans-fast) }
-    .tab:active{ transform: translateY(1px) }
-    .tab.active{ background: var(--secondary); color:#fff; border-color: transparent }
-    .tab svg{ width:24px; height:24px }
-    .tab .label{ font-weight:700 }
-    @media (max-width: 640px){
-      .tab .label{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap }
-      .tab svg{ width:26px; height:26px }
+    input, select, textarea{
+      width:100%; border:1px solid var(--muted); border-radius:12px; padding:.65rem .75rem; background:var(--card); color:var(--ink);
     }
 
-    /* Toast */
-    .toast{ position:fixed; left:50%; transform: translateX(-50%); bottom: calc(86px + env(safe-area-inset-bottom)); background:var(--ink); color:white; padding:.7rem 1rem; border-radius:12px; opacity:0; pointer-events:none }
+    .toast{ position:fixed; left:50%; transform: translateX(-50%); bottom: calc(94px + env(safe-area-inset-bottom)); background:var(--ink); color:white; padding:.7rem 1rem; border-radius:12px; opacity:0; pointer-events:none }
     .toast.show{ opacity:1; animation: toast .2s ease; }
     @keyframes toast{ from{ transform: translate(-50%, 8px); opacity:0 } }
 
@@ -169,13 +175,12 @@
     }
   </style>
 </head>
-<body data-palette="beach" data-mode="light">
+<body>
   <div class="ocean" aria-hidden="true"></div>
 
   <header>
-    <div class="header-top">
+    <div class="topbar">
       <div class="logo" aria-label="Hamaka">
-        <!-- Logo -->
         <svg viewBox="0 0 64 64" role="img" aria-hidden="true">
           <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00BFA6"/><stop offset="1" stop-color="#1576EA"/></linearGradient></defs>
           <path d="M8 42c10 0 18-8 24-8s14 8 24 8" fill="none" stroke="url(#g1)" stroke-width="6" stroke-linecap="round"/>
@@ -185,22 +190,20 @@
         HAMAKA <span class="chip" id="envChip">v1.2</span>
       </div>
       <div class="actions">
-        <button class="iconBtn" id="paletteBtn" title="Cambiar paleta" aria-label="Cambiar paleta">
-          <!-- Palette icon -->
-          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3a9 9 0 0 0 0 18h3a2 2 0 0 0 2-2c0-.9-.6-1.7-1.5-1.93A2.5 2.5 0 0 1 15 14c0-1.38 1.12-2.5 2.5-2.5h.86A3.64 3.64 0 0 0 22 7.86 9 9 0 0 0 12 3Zm-5 8a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm4-5a2 2 0 1 1 0-4 2 2 0 0 1 0 4ZM6 18a2 2 0 1 1 0-4 2 2 0 0 1 0 4Zm5 2a2 2 0 1 1 0-4h.01a2 2 0 0 1-.01 4Z"/></svg>
+        <button class="icon-btn" id="paletteBtn" title="Cambiar paleta" aria-label="Cambiar paleta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a9 9 0 100 18 3 3 0 003-3 2 2 0 00-2-2h-1a2 2 0 01-2-2 3 3 0 013-3h1a3 3 0 003-3 3 3 0 00-3-3z" stroke-width="1.8"/></svg>
         </button>
-        <button class="iconBtn" id="modeBtn" title="Claro/Oscuro" aria-label="Cambiar modo">
-          <!-- Sun/Moon -->
-          <svg id="modeIcon" viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0 4a1 1 0 0 1-1-1v-1a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm0-18a1 1 0 0 1-1-1V2a1 1 0 1 1 2 0v1a1 1 0 0 1-1 1Zm10 7h-1a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2ZM3 11H2a1 1 0 1 1 0-2h1a1 1 0 1 1 0 2Zm15.66 7.66-0.7-0.7a1 1 0 1 1 1.41-1.41l0.7 0.7a1 1 0 0 1-1.41 1.41ZM4.63 6.34l-.7-.7A1 1 0 1 1 5.34 4.22l.7.7A1 1 0 0 1 4.63 6.34Zm13.02-2.12.7-.7a1 1 0 0 1 1.41 1.41l-.7.7a1 1 0 0 1-1.41-1.41ZM4.64 19.78l-.7.7a1 1 0 0 1-1.41-1.41l.7-.7a1 1 0 0 1 1.41 1.41Z"/></svg>
+        <button class="icon-btn" id="modeBtn" title="Modo claro/oscuro" aria-label="Cambiar modo">
+          <svg id="modeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3a9 9 0 109 9c0-4.97-4.03-9-9-9z" stroke-width="1.8"/></svg>
         </button>
-        <button class="iconBtn" id="langBtn" aria-label="Cambiar idioma" title="Idioma">ES</button>
-        <button class="iconBtn" id="installBtn" style="display:none" title="Instalar" aria-label="Instalar">
-          <svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v8.59l2.3-2.3a1 1 0 1 1 1.4 1.42l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 1.4-1.42L11 12.6V4a1 1 0 0 1 1-1Zm-7 14a1 1 0 0 1 1-1h12a1 1 0 1 1 0 2H6a1 1 0 0 1-1-1Z"/></svg>
+        <button class="icon-btn" id="langBtn" aria-label="Cambiar idioma">ES</button>
+        <button class="icon-btn" id="installBtn" title="Instalar" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
       </div>
     </div>
-    <div class="search-row">
-      <div class="search"><input id="globalSearch" type="search" placeholder="Buscar cliente o hamaca…" /></div>
+    <div class="searchbar">
+      <input id="globalSearch" type="search" placeholder="Buscar cliente o hamaca…" />
     </div>
   </header>
 
@@ -213,99 +216,122 @@
 
     <section id="view-map" class="active">
       <div class="map-head">
-        <div class="row" style="flex:2">
+        <div class="row" style="flex:2; align-items:center">
           <div class="pill" id="datePill"></div>
           <select id="slotSelect"></select>
+          <select id="viewMode">
+            <option value="aerial">Vista aérea</option>
+            <option value="grid">Grid</option>
+          </select>
         </div>
         <div class="row" style="flex:1; justify-content:flex-end">
           <button class="btn ghost" id="demoBtn">Modo demo</button>
-          <button class="btn" id="newResBtn">Nueva reserva</button>
+          <button class="btn primary" id="newResBtn">Nueva reserva</button>
         </div>
       </div>
-      <div class="grid" id="grid" style="--cols:10"></div>
+
+      <div class="beach">
+        <div class="boardwalk" aria-hidden="true"></div>
+        <!-- contenedor dinámico: grid o aerial -->
+        <div id="mapWrap" class="grid" style="--cols:10"></div>
+      </div>
     </section>
 
     <section id="view-res">
-      <div class="row" style="margin:.4rem 0">
-        <div class="search"><input id="searchRes" placeholder="Buscar reserva…" /></div>
-        <button class="btn ghost" id="exportJSON">Export JSON</button>
-        <button class="btn ghost" id="exportCSV">Export CSV</button>
+      <div class="card">
+        <div class="row">
+          <div class="search"><input id="searchRes" placeholder="Buscar reserva…" /></div>
+          <button class="btn ghost" id="exportJSON">Export JSON</button>
+          <button class="btn ghost" id="exportCSV">Export CSV</button>
+        </div>
+        <div id="resList" style="margin-top:.6rem"></div>
       </div>
-      <div id="resList" style="margin-top:.6rem"></div>
     </section>
 
     <section id="view-clients">
-      <div class="row" style="margin:.4rem 0">
-        <div class="search"><input id="searchClients" placeholder="Buscar cliente…" /></div>
-        <button class="btn" id="addClientBtn">Nuevo cliente</button>
+      <div class="card">
+        <div class="row">
+          <div class="search"><input id="searchClients" placeholder="Buscar cliente…" /></div>
+          <button class="btn primary" id="addClientBtn">Nuevo cliente</button>
+        </div>
+        <div id="clientList" style="margin-top:.6rem"></div>
       </div>
-      <div id="clientList" style="margin-top:.6rem"></div>
     </section>
 
     <section id="view-reports">
-      <div class="row">
-        <input type="date" id="reportDate">
-        <button class="btn" id="calcReport">Calcular</button>
+      <div class="card">
+        <h3 style="margin:0 0 .6rem 0">Reportes rápidos</h3>
+        <div class="row">
+          <input type="date" id="reportDate">
+          <button class="btn primary" id="calcReport">Calcular</button>
+        </div>
+        <div id="reportOut" style="margin-top:.6rem"></div>
       </div>
-      <div id="reportOut" style="margin-top:.6rem"></div>
     </section>
 
     <section id="view-settings">
-      <div class="row">
-        <div><label>Filas</label><input type="number" id="rows" min="1" max="50" value="6"></div>
-        <div><label>Columnas</label><input type="number" id="cols" min="1" max="50" value="10"></div>
-        <div><label>Hamacas por sombrilla</label><input type="number" id="perUmb" min="1" max="6" value="2"></div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Zonas (por filas, JSON)</label>
-          <textarea id="zones" rows="3" placeholder='[{"nombre":"Primera línea","fromRow":1,"toRow":1},{"nombre":"Tranquila","fromRow":2,"toRow":6}]'></textarea>
+      <div class="card">
+        <h3 style="margin:0 0 .6rem 0">Plano y configuración</h3>
+        <div class="row">
+          <div><label>Filas</label><input type="number" id="rows" min="1" max="50" value="6"></div>
+          <div><label>Columnas</label><input type="number" id="cols" min="1" max="50" value="10"></div>
+          <div><label>Hamacas por sombrilla</label><input type="number" id="perUmb" min="1" max="6" value="2"></div>
         </div>
-      </div>
-      <div class="row">
-        <div>
-          <label>Temporadas (JSON)</label>
-          <textarea id="seasons" rows="3" placeholder='[{"nombre":"Alta","inicio":"2025-06-15","fin":"2025-09-15"}]'></textarea>
+        <div class="row">
+          <div>
+            <label>Zonas (por filas, JSON)</label>
+            <textarea id="zones" rows="3" placeholder='[{"nombre":"Primera línea","fromRow":1,"toRow":1},{"nombre":"Central","fromRow":2,"toRow":3},{"nombre":"Tranquila","fromRow":4,"toRow":6}]'></textarea>
+          </div>
         </div>
-        <div>
-          <label>Tarifas (JSON)</label>
-          <textarea id="rates" rows="3" placeholder='[{"tipo":"hamaca","temporada":"Alta","dia":"laborable","€/hora":5},{"tipo":"sombrilla","temporada":"Alta","dia":"laborable","€/hora":3}]'></textarea>
+        <div class="row">
+          <div>
+            <label>Temporadas (JSON)</label>
+            <textarea id="seasons" rows="3" placeholder='[{"nombre":"Alta","inicio":"2025-06-15","fin":"2025-09-15"}]'></textarea>
+          </div>
+          <div>
+            <label>Tarifas (JSON)</label>
+            <textarea id="rates" rows="3" placeholder='[{"tipo":"hamaca","temporada":"Alta","dia":"laborable","€/hora":5},{"tipo":"sombrilla","temporada":"Alta","dia":"laborable","€/hora":3}]'></textarea>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <button class="btn" id="applyCfg">Aplicar</button>
-        <button class="btn ghost" id="resetCfg">Reset</button>
+        <div class="row">
+          <button class="btn primary" id="applyCfg">Aplicar</button>
+          <button class="btn ghost" id="resetCfg">Reset</button>
+        </div>
       </div>
     </section>
   </main>
 
-  <!-- Bottom nav: solo iconos en móvil -->
   <nav aria-label="Navegación inferior">
     <div class="tabs">
-      <button class="tab active" data-tab="map" aria-label="Mapa" title="Mapa">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3 6.5 8 4l8 3 5-2.5v12L16 19l-8-3-5 2.5v-12Zm13 1.38-6-2.25v10.5l6 2.25V7.88Z"/></svg>
-        <span class="label" data-i18n="map">Mapa</span>
+      <button class="tab active" data-tab="map" aria-label="Mapa">
+        <!-- Map icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6zM9 3v15M15 6v15" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <span data-i18n="map">Mapa</span>
       </button>
-      <button class="tab" data-tab="res" aria-label="Reservas" title="Reservas">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v3H3V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1ZM3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8Zm4 3h4v4H7v-4Z"/></svg>
-        <span class="label" data-i18n="bookings">Reservas</span>
+      <button class="tab" data-tab="res" aria-label="Reservas">
+        <!-- Calendar icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="3" stroke-width="1.8"/><path d="M8 2v4M16 2v4M3 10h18" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span data-i18n="bookings">Reservas</span>
       </button>
-      <button class="tab" data-tab="clients" aria-label="Clientes" title="Clientes">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm-8 8.5a7.5 7.5 0 1 1 16 0V21H4Z"/></svg>
-        <span class="label" data-i18n="clients">Clientes</span>
+      <button class="tab" data-tab="clients" aria-label="Clientes">
+        <!-- Users icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="1.8"/><circle cx="10" cy="8" r="4" stroke-width="1.8"/></svg>
+        <span data-i18n="clients">Clientes</span>
       </button>
-      <button class="tab" data-tab="reports" aria-label="Reportes" title="Reportes">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M4 4h4v16H4V4Zm6 6h4v10h-4V10Zm6-4h4v14h-4V6Z"/></svg>
-        <span class="label" data-i18n="reports">Reportes</span>
+      <button class="tab" data-tab="reports" aria-label="Reportes">
+        <!-- Chart icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V6M10 20V10M16 20V4M22 20H2" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span data-i18n="reports">Reportes</span>
       </button>
-      <button class="tab" data-tab="settings" aria-label="Ajustes" title="Ajustes">
-        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 15.5a3.5 3.5 0 1 0-3.5-3.5A3.5 3.5 0 0 0 12 15.5Zm8.94-2.72-1.75-.29a7 7 0 0 0-.6-1.46l1.07-1.42a1 1 0 0 0-.13-1.3l-1.41-1.41a1 1 0 0 0-1.3-.13l-1.42 1.07a7 7 0 0 0-1.46-.6l-.29-1.75A1 1 0 0 0 11 3h-2a1 1 0 0 0-1 .85l-.29 1.75a7 7 0 0 0-1.46.6L4.83 5.13a1 1 0 0 0-1.3.13L2.12 6.67a1 1 0 0 0-.13 1.3l1.07 1.42a7 7 0 0 0-.6 1.46l-1.75.29A1 1 0 0 0 0 13v2a1 1 0 0 0 .85 1l1.75.29a7 7 0 0 0 .6 1.46l-1.07 1.42a1 1 0 0 0 .13 1.3l1.41 1.41a1 1 0 0 0 1.3.13l1.42-1.07a7 7 0 0 0 1.46.6l.29 1.75A1 1 0 0 0 9 24h2a1 1 0 0 0 1-.85l.29-1.75a7 7 0 0 0 1.46-.6l1.42 1.07a1 1 0 0 0 1.3-.13l1.41-1.41a1 1 0 0 0 .13-1.3l-1.07-1.42a7 7 0 0 0 .6-1.46l1.75-.29A1 1 0 0 0 24 15v-2a1 1 0 0 0-.85-1.22Z"/></svg>
-        <span class="label" data-i18n="settings">Ajustes</span>
+      <button class="tab" data-tab="settings" aria-label="Ajustes">
+        <!-- Settings icon -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V22a2 2 0 01-4 0v-.07a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.07a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.07a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.07a1.65 1.65 0 00-1.51 1z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span data-i18n="settings">Ajustes</span>
       </button>
     </div>
   </nav>
 
-  <!-- Sheet: Reserva -->
+  <!-- Sheet reserva -->
   <div class="sheet" id="sheet">
     <div class="handle"></div>
     <form id="resForm">
@@ -320,15 +346,15 @@
         <div><label>Cliente</label><select id="resClient"></select></div>
       </div>
       <div class="row">
-        <div><label>Personas</label><input type="number" id="resPeople" min="1" value="2"></div>
+        <div><label>Personas</label><input id="resPeople" type="number" min="1" max="6" value="2"></div>
         <div><label>Precio estimado</label><input id="resPrice" readonly></div>
       </div>
       <div class="row">
         <div><label>Notas</label><input id="resNotes" placeholder="Opcional"></div>
       </div>
       <div class="row">
-        <button class="btn" type="submit">Guardar</button>
-        <button class="btn" type="button" id="checkInBtn">Check-in</button>
+        <button class="btn primary" type="submit">Guardar</button>
+        <button class="btn ghost" type="button" id="checkInBtn">Check-in</button>
         <button class="btn ghost" type="button" id="cancelBtn">Cancelar</button>
       </div>
     </form>
@@ -337,37 +363,25 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    // i18n
+    // ===== i18n =====
     const I18N = {
       es: { map:"Mapa", bookings:"Reservas", clients:"Clientes", reports:"Reportes", settings:"Ajustes", date:"Fecha",
         saved:"Reserva guardada", created:"Reserva creada", updated:"Reserva actualizada",
         checkin_ok:"Check-in realizado", cancel_ok:"Reserva cancelada", demo_loaded:"Demo cargada",
-        install:"Instalar", newBooking:"Nueva reserva", allDay:"Todo el día" },
+        install:"Instalar", newBooking:"Nueva reserva", allDay:"Todo el día", aerial:"Vista aérea", grid:"Grid" },
       en: { map:"Map", bookings:"Bookings", clients:"Customers", reports:"Reports", settings:"Settings", date:"Date",
         saved:"Booking saved", created:"Booking created", updated:"Booking updated",
         checkin_ok:"Check-in complete", cancel_ok:"Booking cancelled", demo_loaded:"Demo loaded",
-        install:"Install", newBooking:"New booking", allDay:"All day" }
+        install:"Install", newBooking:"New booking", allDay:"All day", aerial:"Aerial", grid:"Grid" }
     };
-    let lang = (localStorage.getItem('hamaka-lang')||'es'); const t = (k)=> (I18N[lang] && I18N[lang][k]) || k;
+    let lang = localStorage.getItem('hamaka-lang') || 'es';
+    const t = k => (I18N[lang] && I18N[lang][k]) || k;
 
-    // Theme
-    const palettes = ['beach','ocean','sunset'];
-    let palette = localStorage.getItem('hamaka-palette') || 'beach';
-    let mode = localStorage.getItem('hamaka-mode') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    function applyTheme(){
-      document.body.dataset.palette = palette;
-      document.body.dataset.mode = mode;
-      $('#langBtn').textContent = lang.toUpperCase();
-      $('#modeIcon').innerHTML = mode==='dark'
-        ? '<path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>'
-        : '<path fill="currentColor" d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Z"/>';
-    }
-
-    // State
+    // ===== State =====
     const state = {
       config: {
         rows: 6, cols: 10, perUmbrella: 2,
-        zones: [{nombre:"Primera línea", fromRow:1, toRow:1},{nombre:"Tranquila", fromRow:2, toRow:6}],
+        zones: [{nombre:"Primera línea", fromRow:1, toRow:1},{nombre:"Central", fromRow:2, toRow:3},{nombre:"Tranquila", fromRow:4, toRow:6}],
         seasons: [
           {nombre:"Alta", inicio:"2025-06-15", fin:"2025-09-15"},
           {nombre:"Baja", inicio:"2025-01-01", fin:"2025-06-14"}
@@ -381,57 +395,78 @@
       },
       hamacas: [], reservas: [], clientes: [],
       activeDate: new Date(),
-      viewSlot: null, // null = Todo el día
+      viewSlot: null, // null = All day
+      mapMode: (document.documentElement.dataset.mapmode || 'aerial'),
       slotMinutes: 60,
-      promptEvent: null
+      promptEvent: null,
+      theme: localStorage.getItem('hamaka-theme') || document.documentElement.dataset.theme || 'turquoise',
+      mode: localStorage.getItem('hamaka-mode') || document.documentElement.dataset.mode || 'auto'
     };
 
-    // Utils
+    // ===== Utils =====
     const $ = (s, ctx=document)=>ctx.querySelector(s);
     const $all = (s, ctx=document)=>Array.from(ctx.querySelectorAll(s));
     const fmtDate = d=>new Date(d).toISOString().slice(0,10);
     const isWeekend = d=>[0,6].includes(new Date(d).getDay());
     const uid = (p='')=> p + Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-3);
     const clamp = (n,min,max)=>Math.max(min, Math.min(max,n));
-    const money = n=> new Intl.NumberFormat(lang, {style:'currency', currency:'EUR'}).format(n||0);
+    const money = (n)=> new Intl.NumberFormat(lang, {style:'currency', currency:'EUR'}).format(n||0);
 
     function save(){ localStorage.setItem('hamaka-data', JSON.stringify({ ...state, promptEvent:undefined })); }
     function load(){
-      const s = localStorage.getItem('hamaka-data'); if(!s) return;
-      try{
+      const s = localStorage.getItem('hamaka-data');
+      if(!s) return;
+      try {
         const {config, hamacas, reservas, clientes, activeDate} = JSON.parse(s);
-        state.config = config||state.config; state.hamacas = hamacas||[];
-        state.reservas = reservas||[]; state.clientes = clientes||[];
+        state.config = config||state.config;
+        state.hamacas = hamacas||[];
+        state.reservas = reservas||[];
+        state.clientes = clientes||[];
         state.activeDate = activeDate ? new Date(activeDate) : new Date();
-      }catch(e){ console.warn('No se pudo cargar estado', e) }
+      } catch(e){ console.warn('No se pudo cargar estado', e) }
     }
 
-    // Hamacas
+    // ===== Theming =====
+    function applyTheme(name){
+      document.documentElement.dataset.theme = name;
+      state.theme = name; localStorage.setItem('hamaka-theme', name);
+    }
+    function cyclePalette(){
+      const list = ['turquoise','sunset','sand'];
+      const idx = list.indexOf(state.theme);
+      applyTheme(list[(idx+1)%list.length]);
+    }
+    function applyMode(mode){
+      document.documentElement.dataset.mode = mode;
+      state.mode = mode; localStorage.setItem('hamaka-mode', mode);
+    }
+    function toggleMode(){
+      const next = state.mode==='light' ? 'dark' : state.mode==='dark' ? 'auto' : 'light';
+      applyMode(next);
+      $('#modeIcon').innerHTML = next==='dark'
+        ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-width="1.8"></path>'
+        : next==='light'
+          ? '<circle cx="12" cy="12" r="5" stroke-width="1.8"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-width="1.8" stroke-linecap="round"></path>'
+          : '<path d="M12 3a9 9 0 109 9c0-4.97-4.03-9-9-9z" stroke-width="1.8"></path>';
+    }
+
+    // ===== Datos hamacas =====
     function genHamacas(){
       const {rows, cols, zones} = state.config;
       const list = [];
       for(let r=1; r<=rows; r++){
         for(let c=1; c<=cols; c++){
-          const id=`H-${r}-${c}`;
+          const id = `H-${r}-${c}`;
           const zona = zones.find(z=> r>=z.fromRow && r<=z.toRow)?.nombre || "General";
-          list.push({ id, nombre:`${String.fromCharCode(64+r)}${c}`, posicion:{fila:r,col:c}, zona, estado:'libre', notas:'' });
+          list.push({ id, nombre: `${String.fromCharCode(64+r)}${c}`, posicion:{fila:r,col:c}, zona, estado:'libre', notas:'' });
         }
       }
       state.hamacas = list;
     }
 
-    // Abreviador de zona para chip pequeño
-    function abbrZona(z){
-      if(!z) return '';
-      const s = z.toLowerCase();
-      if(s.startsWith('primera')) return '1ª';
-      if(s.startsWith('segunda')) return '2ª';
-      if(s.startsWith('central')) return 'C';
-      if(s.startsWith('tranquil')) return 'T';
-      return z[0].toUpperCase();
-    }
+    // ===== Render =====
+    function setLang(l){ lang = l; localStorage.setItem('hamaka-lang', l); $('#langBtn').textContent = l.toUpperCase(); $all('[data-i18n]').forEach(el=> el.textContent = t(el.dataset.i18n)); }
 
-    // Icons
     function loungerIcon(){
       return `<svg class="svg-lounger" viewBox="0 0 64 64" aria-hidden="true">
         <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#F8FAFC"/></linearGradient></defs>
@@ -444,50 +479,99 @@
       </svg>`;
     }
 
-    // Rendering
-    function setLang(l){ lang=l; localStorage.setItem('hamaka-lang', l); $('#langBtn').textContent=l.toUpperCase(); $all('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n)); }
+    function zoneShort(z){
+      if(!z) return 'GEN';
+      const lower = z.toLowerCase();
+      if(lower.includes('primera')) return '1ª';
+      if(lower.includes('segunda')) return '2ª';
+      if(lower.includes('central')) return 'CTR';
+      if(lower.includes('tranquil')) return 'TRQ';
+      return z.slice(0,3).toUpperCase();
+    }
+
+    function peopleBadge(n=0){
+      if(!n || n<1) return '';
+      return `<div class="people" title="${n} personas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="1.6"/><circle cx="10" cy="8" r="3.5" stroke-width="1.6"/></svg>
+        ${n}
+      </div>`;
+    }
 
     function renderGrid(){
-      const grid = $('#grid'); grid.style.setProperty('--cols', state.config.cols); grid.innerHTML='';
+      const wrap = $('#mapWrap');
+      wrap.className = state.mapMode==='aerial' ? 'aerial' : 'grid';
+      wrap.style.setProperty('--cols', state.config.cols);
+      wrap.innerHTML = '';
       if(!state.hamacas.length) genHamacas();
       const day = fmtDate(state.activeDate);
-      const resDay = state.reservas.filter(r=> r.fecha===day && r.estado!=='cancelada');
+      const resDay = state.reservas.filter(r=>r.fecha===day && r.estado!=='cancelada');
 
-      for(const h of state.hamacas){
-        const rNow = activeResForSeat(h.id, resDay, day);
-        const btn = document.createElement('button');
-        btn.type="button"; btn.className = 'lounger ' + cssState(h, resDay, day);
-        btn.setAttribute('data-id', h.id);
-        btn.innerHTML = `
-          <span class="status-dot" style="background:${statusDot(btn.className)}"></span>
-          <span class="zone-tag">${abbrZona(h.zona)}</span>
-          ${rNow && rNow.personas ? `<span class="people-badge">${rNow.personas}</span>`:''}
-          ${loungerIcon()}
-          <div class="id">${h.nombre}</div>`;
-        btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id); });
-        grid.appendChild(btn);
+      if(state.mapMode==='grid'){
+        // usar grid
+        for(const h of state.hamacas){
+          wrap.appendChild(makeLounger(h, resDay));
+        }
+      } else {
+        // Vista aérea: posicionamiento absoluto siguiendo filas/columnas, con ligera curvatura
+        const padX = 16, padY = 20;
+        const cols = state.config.cols, rows = state.config.rows;
+        const W = wrap.clientWidth || wrap.offsetWidth || 320;
+        const tileW = Math.min(120, Math.max(82, (W - padX*2) / Math.min(cols, Math.floor(W/100)) - 8));
+        const gap = 10;
+        const tileH = tileW * 0.8;
+        const beachHeight = rows*tileH + (rows-1)*gap + padY*2 + 40;
+        wrap.style.minHeight = beachHeight+'px';
+
+        for(const h of state.hamacas){
+          const el = makeLounger(h, resDay);
+          // posicionar
+          const r = h.posicion.fila-1, c = h.posicion.col-1;
+          // curvatura suave: las filas altas están un poco más cerca del mar (top), con ligera onda
+          const curve = Math.sin((c/cols)*Math.PI) * 6; // ondulación de línea de costa
+          const top = padY + r*(tileH+gap) - r*2 + curve;
+          const left = padX + c*(tileW+gap);
+          Object.assign(el.style, { top: top+'px', left: left+'px', width: tileW+'px', height: tileH+'px' });
+          wrap.appendChild(el);
+        }
       }
       updateKPIs();
     }
 
-    function statusDot(cn){ if(cn.includes('occupied')) return 'var(--brand)'; if(cn.includes('reserved')) return 'var(--accent)'; if(cn.includes('maint')) return '#94A3B8'; return 'var(--ok)'; }
+    function makeLounger(h, resDay){
+      const btn = document.createElement('button');
+      btn.type="button";
+      const cls = 'lounger ' + cssState(h, resDay);
+      btn.className = cls;
+      btn.setAttribute('data-id', h.id);
+      const res = resDay.find(r=> r.hamacas?.includes(h.id) && (state.viewSlot ? overlaps(state.viewSlot, r.franja, fmtDate(state.activeDate)) : true));
+      const personas = res?.personas || 0;
+      btn.innerHTML = `
+        <span class="status-dot" style="background:${statusDot(cls)}"></span>
+        <span class="zone-badge">${zoneShort(h.zona)}</span>
+        ${loungerIcon()}
+        <div class="id">${h.nombre}</div>
+        ${peopleBadge(personas)}
+      `;
+      btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id, res?.id); });
+      return btn;
+    }
 
-    function cssState(h, resList, day){
+    function statusDot(className){
+      if(className.includes('occupied')) return 'var(--accent)';
+      if(className.includes('reserved')) return 'var(--accent-3)';
+      if(className.includes('maint')) return '#94A3B8';
+      return 'var(--ok)';
+    }
+
+    function cssState(h, resList){
       if(h.estado==='mantenimiento') return 'maint';
       const list = resList.filter(r=> r.hamacas?.includes(h.id));
       if(!list.length) return 'free';
       const slot = state.viewSlot;
-      const match = slot ? list.some(r=> overlaps(slot, r.franja, day)) : list.length>0;
+      const match = slot ? list.some(r=> overlaps(slot, r.franja, fmtDate(state.activeDate))) : list.length>0;
       if(!match) return 'free';
       if(list.some(r=> r.estado==='ocupada')) return 'occupied';
       return 'reserved';
-    }
-    function activeResForSeat(seatId, resList, day){
-      const slot = state.viewSlot;
-      const list = resList.filter(r=> r.hamacas?.includes(seatId));
-      if(!list.length) return null;
-      if(!slot) return list[0];
-      return list.find(r=> overlaps(slot, r.franja, day)) || null;
     }
 
     function timeRange(str){ const [i,f] = str.split('-'); return {inicio:i, fin:f}; }
@@ -496,17 +580,19 @@
       const s2=new Date(`${dateStr}T${b.inicio}`), e2=new Date(`${dateStr}T${b.fin}`);
       return s1<e2 && s2<e1;
     }
-
     function ripple(e){
-      const el = e.currentTarget; const r = document.createElement('span'); r.className='ripple';
-      const rect = el.getBoundingClientRect(); r.style.left = (e.clientX - rect.left)+'px'; r.style.top = (e.clientY - rect.top)+'px';
-      const max = Math.max(rect.width, rect.height); r.style.width = r.style.height = max+'px'; el.appendChild(r); setTimeout(()=> r.remove(), 600);
+      const el = e.currentTarget;
+      const r = document.createElement('span'); r.className='ripple';
+      const rect = el.getBoundingClientRect();
+      r.style.left = (e.clientX - rect.left)+'px'; r.style.top = (e.clientY - rect.top)+'px';
+      const max = Math.max(rect.width, rect.height); r.style.width = r.style.height = max+'px';
+      el.appendChild(r); setTimeout(()=> r.remove(), 600);
     }
 
     function updateKPIs(){
       const d = fmtDate(state.activeDate);
       const res = state.reservas.filter(r=> r.fecha===d && r.estado!=='cancelada');
-      const occNow = state.hamacas.filter(h=> cssState(h, res, d)!=='free').length;
+      const occNow = state.hamacas.filter(h=> cssState(h, res)!=='free').length;
       const occPct = state.hamacas.length ? Math.round(occNow/state.hamacas.length*100) : 0;
       $('#kpiOcc').textContent = occPct+'%';
       $('#kpiRes').textContent = res.length;
@@ -515,30 +601,68 @@
     }
 
     function renderSlots(){
-      const sel = $('#slotSelect'); sel.innerHTML='';
-      const optAll = document.createElement('option'); optAll.value='ALL'; optAll.textContent = t('allDay'); sel.appendChild(optAll);
-      for(let h=8; h<=20; h++){ const end = h + state.slotMinutes/60; const v = `${String(h).padStart(2,'0')}:00-${String(end).padStart(2,'0')}:00`; const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }
-      sel.value='ALL'; $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+      const sel = $('#slotSelect');
+      sel.innerHTML = '';
+      const optAll = document.createElement('option'); optAll.value = 'ALL'; optAll.textContent = t('allDay'); sel.appendChild(optAll);
+      for(let h=8; h<=20; h++){
+        const end = h + state.slotMinutes/60;
+        const value = `${String(h).padStart(2,'0')}:00-${String(end).padStart(2,'0')}:00`;
+        const opt = document.createElement('option'); opt.value = value; opt.textContent = value; sel.appendChild(opt);
+      }
+      sel.value = 'ALL';
+      $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+      // Vista
+      $('#viewMode').value = state.mapMode;
     }
 
-    // Sheet
-    function openSheetFor(hamacaId=null){
-      const sh = $('#sheet'), f = $('#resForm'); f.reset();
-      $('#resId').value=''; $('#resDate').value = fmtDate(state.activeDate); $('#resStart').value='09:00'; $('#resEnd').value='13:00'; $('#resPeople').value=2;
-      renderSeatOptions(hamacaId); renderClientOptions(); calcPrice(); sh.classList.add('active');
+    // ===== Sheet (Reserva) =====
+    function openSheetFor(hamacaId=null, editId=null){
+      const sh = $('#sheet');
+      const f = $('#resForm');
+      f.reset();
+      $('#resId').value = '';
+      $('#resDate').value = fmtDate(state.activeDate);
+      $('#resStart').value = '09:00'; $('#resEnd').value = '13:00';
+      $('#resPeople').value = 2;
+      renderSeatOptions(hamacaId);
+      renderClientOptions();
+
+      if(editId){
+        const r = state.reservas.find(x=>x.id===editId);
+        if(r){
+          $('#resId').value = r.id;
+          $('#resDate').value = r.fecha;
+          $('#resStart').value = r.franja.inicio;
+          $('#resEnd').value = r.franja.fin;
+          $('#resSeat').value = r.hamacas[0];
+          $('#resClient').value = r.clienteId;
+          $('#resNotes').value = r.notas||'';
+          $('#resPeople').value = r.personas||2;
+        }
+      }
+      calcPrice();
+      sh.classList.add('active');
     }
     function closeSheet(){ $('#sheet').classList.remove('active') }
+
     function renderSeatOptions(selected){
-      const sel = $('#resSeat'); sel.innerHTML = state.hamacas.map(h=> `<option value="${h.id}" ${h.id===selected?'selected':''}>${h.nombre} — ${h.zona}</option>`).join('');
-    }
-    function renderClientOptions(){
-      const sel = $('#resClient'); sel.innerHTML = '<option value="">— Nuevo cliente —</option>' + state.clientes.map(c=> `<option value="${c.id}">${c.nombre}</option>`).join('');
+      const sel = $('#resSeat');
+            sel.innerHTML = state.hamacas.map(h=> `<option value="${h.id}" ${h.id===selected?'selected':''}>${h.nombre}</option>`).join('');
     }
 
+    function renderClientOptions(){
+      const sel = $('#resClient');
+      sel.innerHTML = '<option value="">— Nuevo cliente —</option>' +
+        state.clientes.map(c=> `<option value="${c.id}">${c.nombre}</option>`).join('');
+    }
+
+    // Precio: por horas (tarifa hamaca) + extra sombrilla si se completa el par
     function calcPrice(){
-      const d = $('#resDate').value, inicio = $('#resStart').value, fin = $('#resEnd').value;
+      const d = $('#resDate').value || fmtDate(state.activeDate);
+      const inicio = $('#resStart').value, fin = $('#resEnd').value;
       const horas = Math.max(0, (new Date(`${d}T${fin}`)-new Date(`${d}T${inicio}`))/3600000);
-      const temporada = seasonName(d); const dia = isWeekend(d) ? 'festivo' : 'laborable';
+      const temporada = seasonName(d);
+      const dia = isWeekend(d) ? 'festivo' : 'laborable';
       const th = state.config.rates.find(r=> r.tipo==='hamaca' && r.temporada===temporada && r.dia===dia);
       const ts = state.config.rates.find(r=> r.tipo==='sombrilla' && r.temporada===temporada && r.dia===dia);
       const base = (th?th["€/hora"]:4) * horas;
@@ -546,96 +670,158 @@
       const isPair = seatId && Number(seatId.split('-')[2]) % state.config.perUmbrella === 0;
       const extra = isPair && ts ? ts["€/hora"]*horas : 0;
       const price = Math.max(0, Math.round((base + extra)*100)/100);
-      $('#resPrice').value = price.toFixed(2)+'€'; return price;
+      $('#resPrice').value = price.toFixed(2)+'€';
+      return price;
     }
+
     function seasonName(dateStr){
       const d = new Date(dateStr);
-      for(const s of state.config.seasons){ const i=new Date(s.inicio), f=new Date(s.fin); if(d>=i && d<=f) return s.nombre; }
+      for(const s of state.config.seasons){
+        const i = new Date(s.inicio), f = new Date(s.fin);
+        if(d>=i && d<=f) return s.nombre;
+      }
       return 'Baja';
     }
 
-    // CRUD Reserva
-    $('#resForm').addEventListener('input', (e)=> { if(['resDate','resStart','resEnd','resSeat'].includes(e.target.id)) calcPrice(); });
+    // ===== CRUD Reserva =====
+    $('#resForm').addEventListener('input', (e)=> {
+      if(['resDate','resStart','resEnd','resSeat'].includes(e.target.id)) calcPrice();
+    });
+
     $('#resForm').addEventListener('submit', (e)=>{
       e.preventDefault();
       const id = $('#resId').value || uid('R-');
+
+      // cliente
       let clienteId = $('#resClient').value;
       if(!clienteId){
-        const nombre = prompt('Nombre del cliente:','Cliente demo'); if(!nombre) return;
-        const c = { id: uid('C-'), nombre }; state.clientes.push(c); clienteId = c.id;
+        const nombre = prompt('Nombre del cliente:','Cliente demo');
+        if(!nombre) return;
+        const c = { id: uid('C-'), nombre };
+        state.clientes.push(c); clienteId = c.id;
       }
+
       const reserva = {
-        id, fecha: $('#resDate').value,
+        id,
+        fecha: $('#resDate').value || fmtDate(state.activeDate),
         franja: {inicio:$('#resStart').value, fin:$('#resEnd').value},
         hamacas: [$('#resSeat').value],
-        personas: Math.max(1, parseInt($('#resPeople').value)||1),
-        clienteId, precio: parseFloat($('#resPrice').value), estado:'reservada',
+        clienteId,
+        personas: clamp(parseInt($('#resPeople').value)||1, 1, 6),
+        precio: parseFloat(($('#resPrice').value||'').replace(/[^\d.]/g,''))||0,
+        estado:'reservada',
         notas: $('#resNotes').value||''
       };
+
+      // solape simple
       const overlap = state.reservas.find(r=> r.id!==id && r.fecha===reserva.fecha && r.hamacas.some(h=> reserva.hamacas.includes(h)) && overlaps(reserva.franja, r.franja, reserva.fecha) && r.estado!=='cancelada');
-      if(overlap){ toast('Solape detectado: elige otra franja o hamaca'); return; }
+      if(overlap){ toast('Solape detectado: elige otra franja u otra hamaca'); return; }
 
       const ix = state.reservas.findIndex(r=> r.id===id);
       if(ix>=0) state.reservas[ix]=reserva; else state.reservas.push(reserva);
-      save(); renderAll(); closeSheet(); toast(ix>=0? t('updated') : t('created')); flashLounger(reserva.hamacas[0]);
+      save(); renderAll(); closeSheet(); toast(ix>=0? t('updated') : t('created'));
+      flashLounger(reserva.hamacas[0]);
     });
-    function flashLounger(id){ const el = document.querySelector(`.lounger[data-id="${id}"]`); if(!el) return; el.classList.add('flash'); setTimeout(()=> el.classList.remove('flash'), 420); }
 
     $('#checkInBtn').addEventListener('click', ()=>{
-      const id = $('#resId').value; if(!id) return;
-      const r = state.reservas.find(x=>x.id===id); if(!r) return; r.estado='ocupada';
+      const id = $('#resId').value;
+      if(!id) return;
+      const r = state.reservas.find(x=>x.id===id);
+      if(!r) return;
+      r.estado = 'ocupada';
       save(); renderAll(); toast(t('checkin_ok')); flashLounger(r.hamacas[0]);
     });
+
     $('#cancelBtn').addEventListener('click', ()=>{
-      const id = $('#resId').value; if(!id){ closeSheet(); return; }
-      const r = state.reservas.find(x=>x.id===id); if(!r) return; r.estado='cancelada';
+      const id = $('#resId').value;
+      if(!id) { closeSheet(); return; }
+      const r = state.reservas.find(x=>x.id===id);
+      if(!r) return;
+      r.estado = 'cancelada';
       save(); renderAll(); closeSheet(); toast(t('cancel_ok'));
     });
 
-    // Lists
+    function flashLounger(id){
+      const el = document.querySelector(`.lounger[data-id="${id}"]`);
+      if(!el) return; el.classList.add('flash'); setTimeout(()=> el.classList.remove('flash'), 400);
+    }
+
+    // ===== Listados =====
     function renderReservas(){
-      const box = $('#resList'); const q = ($('#searchRes').value||'').toLowerCase();
-      const list = state.reservas.filter(r=>{
-        const c = state.clientes.find(x=>x.id===r.clienteId)?.nombre?.toLowerCase()||'';
-        const h = r.hamacas.map(id=> state.hamacas.find(x=>x.id===id)?.nombre).join(',').toLowerCase();
-        return [r.fecha, c, h].some(s=> (s||'').includes(q));
-      }).sort((a,b)=> a.fecha.localeCompare(b.fecha)|| a.franja.inicio.localeCompare(b.franja.inicio));
+      const box = $('#resList');
+      const q = ($('#searchRes').value||'').toLowerCase();
+      const list = state.reservas
+        .filter(r=>{
+          const c = state.clientes.find(x=>x.id===r.clienteId)?.nombre?.toLowerCase()||'';
+          const h = r.hamacas.map(id=> state.hamacas.find(x=>x.id===id)?.nombre).join(',').toLowerCase();
+          return [r.fecha, c, h, r.estado].some(s=> (s||'').includes(q));
+        })
+        .sort((a,b)=> a.fecha.localeCompare(b.fecha)|| a.franja.inicio.localeCompare(b.franja.inicio));
+
       box.innerHTML = list.map(r=>{
         const c = state.clientes.find(x=>x.id===r.clienteId)?.nombre||'—';
         const h = r.hamacas.map(id=> state.hamacas.find(x=>x.id===id)?.nombre).join(', ');
-        return `<div class="kpi" style="margin:.35rem 0">
+        return `<div class="card" style="margin:.5rem 0; display:flex; align-items:center; justify-content:space-between; gap:.8rem">
           <div><b>${r.fecha}</b> ${r.franja.inicio}-${r.franja.fin} · <b>${h}</b> · ${c} · 👥 ${r.personas||1}</div>
-          <div><button class="btn ghost" data-edit="${r.id}">Editar</button></div>
+          <div class="row" style="flex:0 0 auto">
+            <span class="pill">${r.estado}</span>
+            <button class="btn ghost" data-edit="${r.id}">Editar</button>
+          </div>
         </div>`;
-      }).join('') || '<div class="kpi">Sin reservas</div>';
+      }).join('') || '<div class="card">Sin reservas</div>';
+
       $all('[data-edit]').forEach(b=> b.addEventListener('click', ()=> editReserva(b.dataset.edit)));
     }
+
     function editReserva(id){
-      const r = state.reservas.find(x=>x.id===id); if(!r) return;
-      openSheetFor(r.hamacas[0]); $('#resId').value=r.id; $('#resDate').value=r.fecha; $('#resStart').value=r.franja.inicio; $('#resEnd').value=r.franja.fin;
-      $('#resSeat').value=r.hamacas[0]; renderClientOptions(); $('#resClient').value=r.clienteId; $('#resNotes').value=r.notas||''; $('#resPeople').value=r.personas||1; $('#resPrice').value=(r.precio||0).toFixed(2)+'€';
+      const r = state.reservas.find(x=>x.id===id);
+      if(!r) return;
+      openSheetFor(r.hamacas[0], r.id);
     }
 
-    // Reports
+    function renderClientes(){
+      const box = $('#clientList');
+      const q = ($('#searchClients').value||'').toLowerCase();
+      const list = state.clientes
+        .filter(c=> (c.nombre||'').toLowerCase().includes(q))
+        .sort((a,b)=> (a.nombre||'').localeCompare(b.nombre||''));
+      box.innerHTML = list.map(c=> `<div class="card" style="margin:.4rem 0; display:flex; justify-content:space-between; align-items:center">
+        <div>${c.nombre}</div>
+        <div class="row" style="flex:0 0 auto">
+          <button class="btn ghost" data-book="${c.id}">Reservar</button>
+        </div>
+      </div>`).join('') || '<div class="card">Sin clientes</div>';
+
+      $all('[data-book]').forEach(b=> b.addEventListener('click', ()=> { openSheetFor(); renderClientOptions(); $('#resClient').value = b.dataset.book; }));
+    }
+
+    // ===== Reportes =====
     $('#calcReport').addEventListener('click', ()=>{
       const date = $('#reportDate').value || fmtDate(new Date());
       const res = state.reservas.filter(r=> r.fecha===date && r.estado!=='cancelada');
       const ocp = new Set(res.flatMap(r=>r.hamacas)).size;
       const rev = res.reduce((a,r)=>a+(r.precio||0),0);
-      $('#reportOut').innerHTML = `<div class="kpi">Ocupación (únicas): <b>${ocp}</b> / ${state.hamacas.length} · Reservas: <b>${res.length}</b> · Ingresos est.: <b>${rev.toFixed(2)}€</b></div>`;
+      $('#reportOut').innerHTML = `<div class="card">Ocupación (únicas): <b>${ocp}</b> / ${state.hamacas.length}<br/> Reservas: <b>${res.length}</b><br/> Ingresos est.: <b>${rev.toFixed(2)}€</b></div>`;
     });
 
-    // Export
+    // ===== Export =====
     $('#exportJSON').addEventListener('click', ()=> download('hamaka-data.json', JSON.stringify({hamacas:state.hamacas, reservas:state.reservas, clientes:state.clientes}, null, 2), 'application/json'));
     $('#exportCSV').addEventListener('click', ()=>{
       const rows = [['id','fecha','inicio','fin','hamacas','cliente','personas','precio','estado']];
-      for(const r of state.reservas){ rows.push([r.id, r.fecha, r.franja.inicio, r.franja.fin, r.hamacas.join('|'), (state.clientes.find(c=>c.id===r.clienteId)?.nombre)||'', r.personas||1, r.precio, r.estado]); }
+      for(const r of state.reservas){
+        rows.push([r.id, r.fecha, r.franja.inicio, r.franja.fin, r.hamacas.join('|'), (state.clientes.find(c=>c.id===r.clienteId)?.nombre)||'', r.personas||1, r.precio, r.estado]);
+      }
       const csv = rows.map(r=> r.map(x=> `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
       download('reservas.csv', csv, 'text/csv;charset=utf-8;');
     });
-    function download(name, content, type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([content], {type})); a.download=name; a.click(); setTimeout(()=> URL.revokeObjectURL(a.href), 1000); }
+    function download(name, content, type){
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([content], {type}));
+      a.download = name; a.click();
+      setTimeout(()=> URL.revokeObjectURL(a.href), 800);
+    }
 
-    // Settings
+    // ===== Settings =====
     $('#applyCfg').addEventListener('click', ()=>{
       try{
         state.config.rows = clamp(parseInt($('#rows').value)||6, 1, 50);
@@ -649,7 +835,7 @@
     });
     $('#resetCfg').addEventListener('click', ()=> { localStorage.removeItem('hamaka-data'); location.reload(); });
 
-    // Tabs
+    // ===== Tabs =====
     $all('.tab').forEach(b=> b.addEventListener('click', ()=>{
       $all('.tab').forEach(x=> x.classList.toggle('active', x===b));
       $all('main section').forEach(s=> s.classList.remove('active'));
@@ -659,55 +845,69 @@
       if(b.dataset.tab==='clients') renderClientes();
     }));
 
-    // Global search highlight
+    // ===== Buscador global =====
     $('#globalSearch').addEventListener('input', ()=>{
-      const q = ($('#globalSearch').value||'').toLowerCase();
-      const found = state.hamacas.find(h=> h.nombre.toLowerCase().includes(q));
-      if(found) highlight(found.id);
+      const q = $('#globalSearch').value.toLowerCase().trim();
+      if(!q) return;
+      // 1) intenta hamaca
+      const foundSeat = state.hamacas.find(h=> h.nombre.toLowerCase().includes(q));
+      if(foundSeat){ highlight(foundSeat.id); return; }
+      // 2) sugiere cliente
+      const foundClient = state.clientes.find(c=> (c.nombre||'').toLowerCase().includes(q));
+      if(foundClient){
+        // abre clientes para que lo vean rápido
+        document.querySelector('[data-tab="clients"]').click();
+        $('#searchClients').value = foundClient.nombre.split(' ')[0];
+        renderClientes();
+      }
     });
     function highlight(id){
-      const el = $(`.lounger[data-id="${id}"]`); if(!el) return;
-      el.style.outline=`2px solid var(--secondary)`; el.style.outlineOffset='2px';
+      const el = document.querySelector(`.lounger[data-id="${id}"]`); if(!el) return;
+      el.style.outline='2px solid var(--accent-2)'; el.style.outlineOffset='2px';
       setTimeout(()=> { el.style.outline=''; el.style.outlineOffset=''; }, 900);
     }
 
-    // Demo
+    // ===== Demo =====
     $('#demoBtn').addEventListener('click', loadDemo);
     function loadDemo(){
       state.clientes = [{id:'C-1', nombre:'Laura Pérez'},{id:'C-2', nombre:'John Smith'},{id:'C-3', nombre:'Ana Ruiz'}];
-      state.config.rows=6; state.config.cols=12; state.config.zones=[{nombre:'Primera línea',fromRow:1,toRow:1},{nombre:'Central',fromRow:2,toRow:3},{nombre:'Tranquila',fromRow:4,toRow:6}];
+      state.config.rows=6; state.config.cols=12;
+      state.config.zones=[{nombre:'Primera línea',fromRow:1,toRow:1},{nombre:'Central',fromRow:2,toRow:3},{nombre:'Tranquila',fromRow:4,toRow:6}];
       genHamacas();
       const today = fmtDate(new Date());
       state.reservas = [
         {id:'R-1', fecha:today, franja:{inicio:'09:00',fin:'12:00'}, hamacas:['H-1-3'], clienteId:'C-1', personas:2, precio:18, estado:'reservada'},
         {id:'R-2', fecha:today, franja:{inicio:'10:00',fin:'14:00'}, hamacas:['H-1-4'], clienteId:'C-2', personas:3, precio:24, estado:'ocupada'}
       ];
-      save(); renderAll(); toast(t('demo_loaded')); flashLounger('H-1-3'); flashLounger('H-1-4');
+      save(); renderAll(); toast(t('demo_loaded'));
+      flashLounger('H-1-3'); flashLounger('H-1-4');
     }
 
-    // Slots selector
-    $('#slotSelect').addEventListener('change', (e)=>{ const v=e.target.value; state.viewSlot = (v==='ALL') ? null : timeRange(v); renderGrid(); });
-
-    // Header actions
-    $('#paletteBtn').addEventListener('click', ()=>{
-      const i = palettes.indexOf(palette); palette = palettes[(i+1)%palettes.length]; localStorage.setItem('hamaka-palette', palette); applyTheme();
-      toast('Paleta: '+palette);
+    // ===== Slots y vista =====
+    $('#slotSelect').addEventListener('change', (e)=>{
+      const v = e.target.value;
+      state.viewSlot = (v==='ALL') ? null : timeRange(v);
+      renderGrid();
     });
-    $('#modeBtn').addEventListener('click', ()=>{
-      mode = mode==='dark' ? 'light' : 'dark'; localStorage.setItem('hamaka-mode', mode); applyTheme();
+    $('#viewMode').addEventListener('change', (e)=>{
+      state.mapMode = e.target.value;
+      document.documentElement.dataset.mapmode = state.mapMode;
+      // re-render con layout adecuado
+      renderGrid();
     });
-    $('#langBtn').addEventListener('click', ()=> { setLang(lang==='es'?'en':'es'); renderAll(); });
-    $('#newResBtn').addEventListener('click', ()=> openSheetFor());
-    $('#searchRes').addEventListener('input', renderReservas);
-    $('#searchClients').addEventListener('input', renderClientes);
 
-    // PWA install
+    // ===== Header actions =====
+    $('#paletteBtn').addEventListener('click', ()=> { cyclePalette(); renderGrid(); });
+    $('#modeBtn').addEventListener('click', ()=> { toggleMode(); });
+    $('#langBtn').addEventListener('click', ()=> { setLang(lang==='es'?'en':'es'); renderSlots(); renderGrid(); renderReservas(); renderClientes(); });
+
+    // ===== PWA Install =====
     window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); state.promptEvent = e; $('#installBtn').style.display='inline-grid'; });
     $('#installBtn').addEventListener('click', async ()=>{
       if(state.promptEvent){ state.promptEvent.prompt(); const choice = await state.promptEvent.userChoice; if(choice.outcome==='accepted') $('#installBtn').style.display='none'; }
     });
 
-    // Service Worker
+    // ===== Service Worker (si existe sw.js) =====
     if('serviceWorker' in navigator){
       window.addEventListener('load', ()=> {
         navigator.serviceWorker.register('./sw.js').then(reg=>{
@@ -720,30 +920,78 @@
           });
           let refreshing=false;
           navigator.serviceWorker.addEventListener('controllerchange', ()=> { if(refreshing) return; refreshing=true; location.reload(); });
-        }).catch(console.warn);
+        }).catch(()=>{ /* opcional: sin SW */ });
       });
     }
     function showUpdate(worker){
-      const div = document.createElement('div'); div.className='toast show';
-      div.textContent = 'Nueva versión disponible. Actualizar'; div.style.background = 'var(--secondary)'; div.style.cursor='pointer';
+      const div = document.createElement('div');
+      div.className='toast show';
+      div.textContent = 'Nueva versión disponible. Actualizar';
+      div.style.background = 'var(--accent-2)';
+      div.style.cursor='pointer';
       div.onclick = ()=> { worker.postMessage({action:'skipWaiting'}); div.remove(); };
-      document.body.appendChild(div); setTimeout(()=> div.classList.remove('show'), 5000);
+      document.body.appendChild(div);
+      setTimeout(()=> div.classList.remove('show'), 5000);
     }
 
-    function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2000); }
+    // ===== Toast =====
+    function toast(msg){
+      const t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2000);
+    }
+
+    // ===== Init & responsive =====
+    function renderSlots(){
+      const sel = $('#slotSelect');
+      sel.innerHTML = '';
+      const optAll = document.createElement('option'); optAll.value = 'ALL'; optAll.textContent = t('allDay'); sel.appendChild(optAll);
+      for(let h=8; h<=20; h++){
+        const end = h + state.slotMinutes/60;
+        const value = `${String(h).padStart(2,'0')}:00-${String(end).padStart(2,'0')}:00`;
+        const opt = document.createElement('option'); opt.value = value; opt.textContent = value; sel.appendChild(opt);
+      }
+      sel.value = 'ALL';
+      $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+      $('#viewMode').value = state.mapMode;
+    }
 
     function renderAll(){
-      $('#rows').value = state.config.rows; $('#cols').value = state.config.cols; $('#perUmb').value = state.config.perUmbrella;
+      $('#rows').value = state.config.rows;
+      $('#cols').value = state.config.cols;
+      $('#perUmb').value = state.config.perUmbrella;
       $('#zones').value = JSON.stringify(state.config.zones||[], null, 2);
       $('#seasons').value = JSON.stringify(state.config.seasons||[], null, 2);
       $('#rates').value = JSON.stringify(state.config.rates||[], null, 2);
-      $all('[data-i18n]').forEach(el=> el.textContent=t(el.dataset.i18n));
-      applyTheme(); renderSlots(); renderGrid(); renderReservas(); renderClientes();
-      $('#reportDate').value = fmtDate(new Date()); $('#datePill').textContent = new Date(state.activeDate).toLocaleDateString(lang);
+      setLang(lang);
+      applyTheme(state.theme);
+      applyMode(state.mode);
+      renderSlots();
+      renderGrid();
+      renderReservas();
+      renderClientes();
+      $('#reportDate').value = fmtDate(new Date());
     }
 
-    // Prime
-    load(); if(!state.hamacas.length) genHamacas(); renderAll();
+    // Ajuste de icono de modo al iniciar
+    (function syncModeIcon(){
+      const mode = state.mode;
+      const svg = mode==='dark'
+        ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-width="1.8"></path>'
+        : mode==='light'
+          ? '<circle cx="12" cy="12" r="5" stroke-width="1.8"></circle><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke-width="1.8" stroke-linecap="round"></path>'
+          : '<path d="M12 3a9 9 0 109 9c0-4.97-4.03-9-9-9z" stroke-width="1.8"></path>';
+      $('#modeIcon').innerHTML = svg;
+    })();
+
+    // Debounce para re-render en cambios de tamaño (clave para vista aérea)
+    let rzT;
+    function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> renderGrid(), 120); }
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    // Boot
+    load();
+    if(!state.hamacas.length) genHamacas();
+    renderAll();
   </script>
 </body>
 </html>
