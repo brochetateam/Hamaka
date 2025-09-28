@@ -173,6 +173,76 @@
       .lounger:hover{ transform:none }
       .lounger.flash{ animation:none }
     }
+
+    /* Sol en la esquina */
+    .sun{
+      position:absolute; top:-48px; right:-48px; width:160px; height:160px; border-radius:50%;
+      background:
+        radial-gradient(circle at 35% 35%, #FFF7AE 0 42%, #FFD166 48%, #0000 50%),
+        radial-gradient(circle at 60% 60%, rgba(255,209,102,.4) 0 60%, rgba(255,209,102,0) 62%);
+      box-shadow: 0 0 80px 20px rgba(255,209,102,.45);
+      filter: saturate(110%);
+      animation: sunpulse 10s ease-in-out infinite alternate;
+      pointer-events:none;
+    }
+    @keyframes sunpulse{ from{ transform: scale(1)} to{ transform: scale(1.04)} }
+
+    /* Capa de decoración (palmeras/sombrillas) */
+    .decor-layer{ position:absolute; inset:0; pointer-events:none; }
+    .decor{ position:absolute; opacity:.95; filter: drop-shadow(0 4px 8px rgba(0,0,0,.15)); }
+
+    /* Hamaca sin caja: icono sobre arena */
+    .lounger{
+      position:absolute; background:transparent; border:0; border-radius:0; box-shadow:none;
+      min-height:auto; padding:0; display:flex; align-items:center; justify-content:center;
+      transition: transform .16s ease;
+    }
+    .lounger:hover{ transform: translateY(-2px) }
+    .lounger .id{ display:none } /* ocultamos texto grande */
+    .status-dot{ display:none } /* ya no usamos dot, el color es el propio icono */
+    .fc-label{
+      position:absolute; top:4px; left:4px; font-size:.62rem; font-weight:800;
+      color: color-mix(in oklab, var(--ink) 85%, #000);
+      background: rgba(255,255,255,.65); border:1px solid var(--muted); border-radius:999px; padding:.05rem .35rem;
+      backdrop-filter: blur(6px);
+    }
+    .people{
+      position:absolute; bottom:-6px; left:50%; transform: translateX(-50%);
+      display:flex; align-items:center; gap:.2rem; font-size:.7rem; font-weight:700;
+      background:rgba(255,255,255,.8); border:1px solid var(--muted); border-radius:999px; padding:.1rem .35rem;
+    }
+
+    /* Colores de estado: icono de hamaca se tiñe */
+    .lounger.free .svg-lounger .seat{ fill:#10B981 }        /* verde */
+    .lounger.reserved .svg-lounger .seat{ fill:#F59E0B }    /* ámbar */
+    .lounger.occupied .svg-lounger .seat{ fill:#EF4444 }    /* rojo */
+    .lounger.maint .svg-lounger .seat{ fill:#94A3B8 }       /* gris */
+
+    .svg-lounger{ width:62%; }
+    .svg-lounger .frame{ stroke:#334155; opacity:.45 }
+    .svg-lounger .stripes{ stroke:#CBD5E1; opacity:.4 }
+
+    /* Vista aérea: contenedor absoluto */
+    .aerial{ position:relative; min-height: 62vh; }
+
+    /* Rails para móvil horizontal */
+    .rail{ display:none; position:fixed; z-index:12; top:64px; bottom:80px; pointer-events:none; }
+    .rail-left{ left:10px; width:56px; }
+    .rail-right{ right:10px; width:56px; display:flex; flex-direction:column; gap:.6rem; justify-content:flex-end; align-items:center; }
+    .rail .rail-btn, .rail .fab{
+      pointer-events:auto; width:56px; height:56px; border-radius:16px; border:1px solid var(--muted);
+      display:grid; place-items:center; background: color-mix(in oklab, var(--card) 78%, transparent);
+      transition: transform .15s ease; cursor:pointer;
+    }
+    .rail .rail-btn svg, .rail .fab svg{ width:24px; height:24px }
+    .rail .rail-btn.active{ background: var(--accent-2); color:#fff; border-color:transparent }
+    .rail .fab{ background: var(--accent); color:#fff; border-color: transparent; box-shadow: var(--shadow) }
+    .rail .fab.ghost{ background:rgba(255,255,255,.6); color:var(--ink) }
+    @media (max-width: 900px){
+      html[data-orient="landscape"] nav{ display:none } /* oculta nav inferior */
+      html[data-orient="landscape"] .rail{ display:block }
+      html[data-orient="landscape"] main{ padding-bottom: 1rem } /* más área para mapa */
+    }
   </style>
 </head>
 <body>
@@ -233,6 +303,8 @@
       <div class="beach">
         <div class="boardwalk" aria-hidden="true"></div>
         <!-- contenedor dinámico: grid o aerial -->
+        <div class="sun" aria-hidden="true"></div>
+        <div class="decor-layer" id="decor" aria-hidden="true"></div>
         <div id="mapWrap" class="grid" style="--cols:10"></div>
       </div>
     </section>
@@ -300,6 +372,33 @@
       </div>
     </section>
   </main>
+
+  <aside class="rail rail-left" id="railL" aria-label="Menú lateral">
+    <button class="rail-btn active" data-tab="map" title="Mapa" aria-label="Mapa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6zM9 3v15M15 6v15" stroke-width="1.8"/></svg>
+    </button>
+    <button class="rail-btn" data-tab="res" title="Reservas" aria-label="Reservas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="3" stroke-width="1.8"/><path d="M8 2v4M16 2v4M3 10h18" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+    <button class="rail-btn" data-tab="clients" title="Clientes" aria-label="Clientes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" stroke-width="1.8"/><circle cx="10" cy="8" r="4" stroke-width="1.8"/></svg>
+    </button>
+    <button class="rail-btn" data-tab="reports" title="Reportes" aria-label="Reportes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V6M10 20V10M16 20V4M22 20H2" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+    <button class="rail-btn" data-tab="settings" title="Ajustes" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V22a2 2 0 01-4 0v-.07a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.07a1.65 1.65 0 001.51-1 1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.07a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.07a1.65 1.65 0 00-1.51 1z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </aside>
+
+  <aside class="rail rail-right" id="railR" aria-label="Acciones rápidas">
+    <button class="fab" id="newResFab" title="Nueva reserva" aria-label="Nueva reserva">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v14M5 12h14" stroke-width="2.2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="fab ghost" id="demoFab" title="Demo" aria-label="Modo demo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12h18M12 3v18" stroke-width="2"/></svg>
+    </button>
+  </aside>
 
   <nav aria-label="Navegación inferior">
     <div class="tabs">
@@ -467,17 +566,17 @@
     // ===== Render =====
     function setLang(l){ lang = l; localStorage.setItem('hamaka-lang', l); $('#langBtn').textContent = l.toUpperCase(); $all('[data-i18n]').forEach(el=> el.textContent = t(el.dataset.i18n)); }
 
-    function loungerIcon(){
-      return `<svg class="svg-lounger" viewBox="0 0 64 64" aria-hidden="true">
-        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#F8FAFC"/></linearGradient></defs>
-        <rect x="18" y="10" width="28" height="44" rx="6" fill="url(#lg)" stroke="#CBD5E1" stroke-width="2"/>
-        <g stroke="#CBD5E1" stroke-width="1">
-          <line x1="20" y1="16" x2="46" y2="16"/><line x1="20" y1="22" x2="46" y2="22"/>
-          <line x1="20" y1="28" x2="46" y2="28"/><line x1="20" y1="34" x2="46" y2="34"/>
-          <line x1="20" y1="40" x2="46" y2="40"/><line x1="20" y1="46" x2="46" y2="46"/>
-        </g>
-      </svg>`;
-    }
+    // function loungerIcon(){
+    //   return `<svg class="svg-lounger" viewBox="0 0 64 64" aria-hidden="true">
+    //     <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2E8F0"/><stop offset="1" stop-color="#F8FAFC"/></linearGradient></defs>
+    //     <rect x="18" y="10" width="28" height="44" rx="6" fill="url(#lg)" stroke="#CBD5E1" stroke-width="2"/>
+    //     <g stroke="#CBD5E1" stroke-width="1">
+    //       <line x1="20" y1="16" x2="46" y2="16"/><line x1="20" y1="22" x2="46" y2="22"/>
+    //       <line x1="20" y1="28" x2="46" y2="28"/><line x1="20" y1="34" x2="46" y2="34"/>
+    //       <line x1="20" y1="40" x2="46" y2="40"/><line x1="20" y1="46" x2="46" y2="46"/>
+    //     </g>
+    //   </svg>`;
+    // }
 
     function zoneShort(z){
       if(!z) return 'GEN';
@@ -497,6 +596,129 @@
       </div>`;
     }
 
+    // function renderGrid(){
+    //   const wrap = $('#mapWrap');
+    //   wrap.className = state.mapMode==='aerial' ? 'aerial' : 'grid';
+    //   wrap.style.setProperty('--cols', state.config.cols);
+    //   wrap.innerHTML = '';
+    //   if(!state.hamacas.length) genHamacas();
+    //   const day = fmtDate(state.activeDate);
+    //   const resDay = state.reservas.filter(r=>r.fecha===day && r.estado!=='cancelada');
+
+    //   if(state.mapMode==='grid'){
+    //     // usar grid
+    //     for(const h of state.hamacas){
+    //       wrap.appendChild(makeLounger(h, resDay));
+    //     }
+    //   } else {
+    //     // Vista aérea: posicionamiento absoluto siguiendo filas/columnas, con ligera curvatura
+    //     const padX = 16, padY = 20;
+    //     const cols = state.config.cols, rows = state.config.rows;
+    //     const W = wrap.clientWidth || wrap.offsetWidth || 320;
+    //     const tileW = Math.min(120, Math.max(82, (W - padX*2) / Math.min(cols, Math.floor(W/100)) - 8));
+    //     const gap = 10;
+    //     const tileH = tileW * 0.8;
+    //     const beachHeight = rows*tileH + (rows-1)*gap + padY*2 + 40;
+    //     wrap.style.minHeight = beachHeight+'px';
+
+    //     for(const h of state.hamacas){
+    //       const el = makeLounger(h, resDay);
+    //       // posicionar
+    //       const r = h.posicion.fila-1, c = h.posicion.col-1;
+    //       // curvatura suave: las filas altas están un poco más cerca del mar (top), con ligera onda
+    //       const curve = Math.sin((c/cols)*Math.PI) * 6; // ondulación de línea de costa
+    //       const top = padY + r*(tileH+gap) - r*2 + curve;
+    //       const left = padX + c*(tileW+gap);
+    //       Object.assign(el.style, { top: top+'px', left: left+'px', width: tileW+'px', height: tileH+'px' });
+    //       wrap.appendChild(el);
+    //     }
+    //   }
+    //   updateKPIs();
+    // }
+
+    // function makeLounger(h, resDay){
+    //   const btn = document.createElement('button');
+    //   btn.type="button";
+    //   const cls = 'lounger ' + cssState(h, resDay);
+    //   btn.className = cls;
+    //   btn.setAttribute('data-id', h.id);
+    //   const res = resDay.find(r=> r.hamacas?.includes(h.id) && (state.viewSlot ? overlaps(state.viewSlot, r.franja, fmtDate(state.activeDate)) : true));
+    //   const personas = res?.personas || 0;
+    //   btn.innerHTML = `
+    //     <span class="status-dot" style="background:${statusDot(cls)}"></span>
+    //     <span class="zone-badge">${zoneShort(h.zona)}</span>
+    //     ${loungerIcon()}
+    //     <div class="id">${h.nombre}</div>
+    //     ${peopleBadge(personas)}
+    //   `;
+    //   btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id, res?.id); });
+    //   return btn;
+    // }
+
+    /* Iconos */
+    function loungerIcon(){
+      // Asiento tintado por clase (free/reserved/occupied/maint)
+      return `<svg class="svg-lounger" viewBox="0 0 64 64" aria-hidden="true">
+        <rect class="frame" x="18" y="10" width="28" height="44" rx="6" fill="none" stroke-width="2"/>
+        <rect class="seat" x="20" y="12" width="24" height="40" rx="5"/>
+        <g class="stripes" stroke-width="1">
+          <line x1="22" y1="18" x2="42" y2="18"/><line x1="22" y1="24" x2="42" y2="24"/>
+          <line x1="22" y1="30" x2="42" y2="30"/><line x1="22" y1="36" x2="42" y2="36"/>
+          <line x1="22" y1="42" x2="42" y2="42"/>
+        </g>
+      </svg>`;
+    }
+    function svgPalm(size=44){
+      return `<svg class="decor" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">
+        <path d="M34 62c.5-10.5 1.5-16 3-17 2-1.5 5 2 8-2-6-1-9-5-10-9-2 5-5 8-10 9 3 4 6 .5 8 2 1.5 1 2.5 6.5 3 17z" fill="#8B5E3C"/>
+        <path d="M42 22c6-6 14-6 18-4-6 1-9 4-10 7 5 1 8 4 9 7-6-4-12-3-17 0 0-4 0-7 0-10z" fill="#2BB673"/>
+        <path d="M34 18c-6-6-14-6-18-4 6 1 9 4 10 7-5 1-8 4-9 7 6-4 12-3 17 0 0-4 0-7 0-10z" fill="#3CCB88"/>
+      </svg>`;
+    }
+    function svgUmbrellaTop(size=36, c1='#FF6B6B', c2='#FFD166'){
+      return `<svg class="decor" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">
+        <circle cx="32" cy="32" r="28" fill="${c2}"/>
+        <path d="M32 4A28 28 0 0 1 60 32H32z" fill="${c1}"/>
+        <path d="M32 60A28 28 0 0 1 4 32h28z" fill="${c1}" opacity=".7"/>
+        <circle cx="32" cy="32" r="4" fill="#fff" stroke="#E2E8F0"/>
+      </svg>`;
+    }
+
+    /* Etiqueta Fila/Columna */
+    function fcLabel(h){
+      return `<span class="fc-label">F${h.posicion.fila} C${h.posicion.col}</span>`;
+    }
+
+    /* Estado → clase */
+    function cssState(h, resList){
+      if(h.estado==='mantenimiento') return 'maint';
+      const list = resList.filter(r=> r.hamacas?.includes(h.id));
+      if(!list.length) return 'free';
+      const slot = state.viewSlot;
+      const match = slot ? list.some(r=> overlaps(slot, r.franja, fmtDate(state.activeDate))) : true;
+      if(!match) return 'free';
+      if(list.some(r=> r.estado==='ocupada')) return 'occupied';
+      if(list.some(r=> r.estado==='reservada')) return 'reserved';
+      return 'free';
+    }
+
+    /* Crea una hamaca sin caja */
+    function makeLounger(h, resDay){
+      const btn = document.createElement('button');
+      btn.type="button";
+      const cls = 'lounger ' + cssState(h, resDay);
+      btn.className = cls;
+      btn.setAttribute('data-id', h.id);
+
+      const res = resDay.find(r=> r.hamacas?.includes(h.id) && (state.viewSlot ? overlaps(state.viewSlot, r.franja, fmtDate(state.activeDate)) : true));
+      const personas = res?.personas || 0;
+
+      btn.innerHTML = `${loungerIcon()}${fcLabel(h)}${peopleBadge(personas)}`;
+      btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id, res?.id); });
+      return btn;
+    }
+
+    /* Render playa */
     function renderGrid(){
       const wrap = $('#mapWrap');
       wrap.className = state.mapMode==='aerial' ? 'aerial' : 'grid';
@@ -506,55 +728,112 @@
       const day = fmtDate(state.activeDate);
       const resDay = state.reservas.filter(r=>r.fecha===day && r.estado!=='cancelada');
 
-      if(state.mapMode==='grid'){
-        // usar grid
-        for(const h of state.hamacas){
-          wrap.appendChild(makeLounger(h, resDay));
-        }
-      } else {
-        // Vista aérea: posicionamiento absoluto siguiendo filas/columnas, con ligera curvatura
-        const padX = 16, padY = 20;
+      // Dimensiones estimadas para "aerial"
+      let padX = 20, padY = 24, gap = 14, tileW = 100, tileH = 78;
+      if(state.mapMode==='aerial'){
         const cols = state.config.cols, rows = state.config.rows;
         const W = wrap.clientWidth || wrap.offsetWidth || 320;
-        const tileW = Math.min(120, Math.max(82, (W - padX*2) / Math.min(cols, Math.floor(W/100)) - 8));
-        const gap = 10;
-        const tileH = tileW * 0.8;
+        const usableCols = Math.min(cols, Math.max(3, Math.floor(W/110)));
+        tileW = Math.min(120, Math.max(86, (W - padX*2 - gap*(usableCols-1)) / usableCols));
+        tileH = Math.round(tileW*0.78);
         const beachHeight = rows*tileH + (rows-1)*gap + padY*2 + 40;
         wrap.style.minHeight = beachHeight+'px';
 
+        // Posicionamiento absoluto en ligera curvatura
         for(const h of state.hamacas){
           const el = makeLounger(h, resDay);
-          // posicionar
           const r = h.posicion.fila-1, c = h.posicion.col-1;
-          // curvatura suave: las filas altas están un poco más cerca del mar (top), con ligera onda
-          const curve = Math.sin((c/cols)*Math.PI) * 6; // ondulación de línea de costa
+          const colsCount = state.config.cols;
+          const curve = Math.sin((c/colsCount)*Math.PI) * 6; // onda finita
           const top = padY + r*(tileH+gap) - r*2 + curve;
           const left = padX + c*(tileW+gap);
           Object.assign(el.style, { top: top+'px', left: left+'px', width: tileW+'px', height: tileH+'px' });
           wrap.appendChild(el);
         }
+
+        // Decoración playera
+        renderDecorations(wrap, tileW, tileH, padX, padY, gap);
+      } else {
+        // Grid
+        for(const h of state.hamacas){
+          const el = makeLounger(h, resDay);
+          // en grid no usamos absoluto dentro del contenedor
+          el.style.position='relative';
+          wrap.appendChild(el);
+        }
+        $('#decor') && ($('#decor').innerHTML = '');
       }
+
       updateKPIs();
     }
 
-    function makeLounger(h, resDay){
-      const btn = document.createElement('button');
-      btn.type="button";
-      const cls = 'lounger ' + cssState(h, resDay);
-      btn.className = cls;
-      btn.setAttribute('data-id', h.id);
-      const res = resDay.find(r=> r.hamacas?.includes(h.id) && (state.viewSlot ? overlaps(state.viewSlot, r.franja, fmtDate(state.activeDate)) : true));
-      const personas = res?.personas || 0;
-      btn.innerHTML = `
-        <span class="status-dot" style="background:${statusDot(cls)}"></span>
-        <span class="zone-badge">${zoneShort(h.zona)}</span>
-        ${loungerIcon()}
-        <div class="id">${h.nombre}</div>
-        ${peopleBadge(personas)}
-      `;
-      btn.addEventListener('click', (e)=> { ripple(e); openSheetFor(h.id, res?.id); });
-      return btn;
+    /* Decoraciones (palmeras + sombrillas top) */
+    function renderDecorations(wrap, tileW, tileH, padX, padY, gap){
+      const decor = $('#decor'); if(!decor) return;
+      decor.innerHTML = '';
+      const W = wrap.clientWidth || wrap.offsetWidth || 320;
+      const H = wrap.scrollHeight || wrap.offsetHeight || 400;
+
+      // 3 palmeras cerca de la pasarela
+      const palmsX = [W*0.12, W*0.5-22, W*0.86-32];
+      palmsX.forEach((x,i)=>{
+        const d = document.createElement('div');
+        d.className='decor'; d.style.left = `${x}px`; d.style.top = `${H- (i%2? 110: 90)}px`;
+        d.innerHTML = svgPalm(i%2?48:44); decor.appendChild(d);
+      });
+
+      // Sombrillas: una por grupo de "perUmbrella" en primera línea
+      const per = state.config.perUmbrella || 2;
+      const cols = state.config.cols;
+      const groups = Math.ceil(cols / per);
+      for(let g=0; g<groups; g++){
+        const cCenter = g*per + (per/2);
+        const left = padX + cCenter*(tileW+gap) - tileW/2 - 18;
+        const top = padY - tileH*0.55;
+        const u = document.createElement('div');
+        u.className='decor';
+        u.style.left = `${left}px`; u.style.top = `${Math.max(0, top)}px`;
+        u.innerHTML = svgUmbrellaTop(40);
+        decor.appendChild(u);
+      }
     }
+
+    /* Orientación móvil: landscape con rails */
+    function updateOrientation(){
+      const mobile = window.innerWidth <= 900;
+      const orient = window.innerWidth > window.innerHeight ? 'landscape' : 'portrait';
+      document.documentElement.dataset.orient = orient;
+      document.documentElement.dataset.mobile = mobile ? 'true' : 'false';
+      // Sync botones activos en rails
+      if(mobile && orient==='landscape'){
+        const activeTab = document.querySelector('nav .tab.active')?.dataset.tab || 'map';
+        $all('.rail-left .rail-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===activeTab));
+      }
+    }
+
+    /* Listeners rails */
+    $all('.rail-left .rail-btn').forEach(b=> b.addEventListener('click', ()=>{
+      // Dispara el mismo tab del nav inferior
+      const target = b.dataset.tab;
+      const bottomBtn = document.querySelector(`nav .tab[data-tab="${target}"]`);
+      bottomBtn?.click();
+      $all('.rail-left .rail-btn').forEach(x=> x.classList.toggle('active', x===b));
+    }));
+    $('#newResFab')?.addEventListener('click', ()=> openSheetFor());
+    $('#demoFab')?.addEventListener('click', ()=> { loadDemo(); });
+
+    /* Re‑cálculo en resize / cambio de orientación */
+    // let rzT;
+    // function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> { updateOrientation(); renderGrid(); }, 120); }
+    // window.addEventListener('resize', handleResize);
+    // window.addEventListener('orientationchange', handleResize);
+
+    // Llama una vez al iniciar
+    // updateOrientation();
+
+
+
+
 
     function statusDot(className){
       if(className.includes('occupied')) return 'var(--accent)';
@@ -982,11 +1261,20 @@
       $('#modeIcon').innerHTML = svg;
     })();
 
-    // Debounce para re-render en cambios de tamaño (clave para vista aérea)
+    //Debounce para re-render en cambios de tamaño (clave para vista aérea)
+    // let rzT;
+    // function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> renderGrid(), 120); }
+    // window.addEventListener('resize', handleResize);
+    // window.addEventListener('orientationchange', handleResize);
+
+      /* Re‑cálculo en resize / cambio de orientación */
     let rzT;
-    function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> renderGrid(), 120); }
+    function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> { updateOrientation(); renderGrid(); }, 120); }
     window.addEventListener('resize', handleResize);
     window.addEventListener('orientationchange', handleResize);
+
+    // Llama una vez al iniciar
+    updateOrientation();
 
     // Boot
     load();
