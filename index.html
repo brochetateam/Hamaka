@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#00BFA6" />
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  
   <title>HAMAKA — Gestión de hamacas</title>
   <style>
     /* Paletas y modos */
@@ -238,11 +238,19 @@
     .rail .rail-btn.active{ background: var(--accent-2); color:#fff; border-color:transparent }
     .rail .fab{ background: var(--accent); color:#fff; border-color: transparent; box-shadow: var(--shadow) }
     .rail .fab.ghost{ background:rgba(255,255,255,.6); color:var(--ink) }
-    @media (max-width: 900px){
-      html[data-orient="landscape"] nav{ display:none } /* oculta nav inferior */
-      html[data-orient="landscape"] .rail{ display:block }
-      html[data-orient="landscape"] main{ padding-bottom: 1rem } /* más área para mapa */
-    }
+    .mobile-zoom-controls { display: none; }
+
+@media (max-width: 900px){
+  html[data-orient="landscape"] nav{ display:none } /* oculta nav inferior */
+  html[data-orient="landscape"] .rail{ display:block }
+  html[data-orient="landscape"] main{ padding-left: 76px; padding-right: 76px; padding-bottom: 1rem; }
+
+  .desktop-actions { display: none; }
+  .mobile-zoom-controls {
+    display: flex;
+    gap: .4rem;
+  }
+}
   </style>
 </head>
 <body>
@@ -294,9 +302,13 @@
             <option value="grid">Grid</option>
           </select>
         </div>
-        <div class="row" style="flex:1; justify-content:flex-end">
+        <div class="row desktop-actions" style="flex:1; justify-content:flex-end">
           <button class="btn ghost" id="demoBtn">Modo demo</button>
           <button class="btn primary" id="newResBtn">Nueva reserva</button>
+        </div>
+        <div class="row mobile-zoom-controls" style="flex:1; justify-content:flex-end; align-items: center;">
+            <button class="icon-btn" id="zoomOutBtn" title="Alejar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg></button>
+            <button class="icon-btn" id="zoomInBtn" title="Acercar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
         </div>
       </div>
 
@@ -499,7 +511,8 @@
       slotMinutes: 60,
       promptEvent: null,
       theme: localStorage.getItem('hamaka-theme') || document.documentElement.dataset.theme || 'turquoise',
-      mode: localStorage.getItem('hamaka-mode') || document.documentElement.dataset.mode || 'auto'
+      mode: localStorage.getItem('hamaka-mode') || document.documentElement.dataset.mode || 'auto',
+      zoom: 1
     };
 
     // ===== Utils =====
@@ -1218,6 +1231,16 @@
       const t = $('#toast'); t.textContent = msg; t.classList.add('show'); setTimeout(()=> t.classList.remove('show'), 2000);
     }
 
+    /* Zoom */
+    function changeZoom(delta) {
+      state.zoom = clamp(state.zoom + delta, 0.5, 2);
+      const map = $('#mapWrap');
+      if (map) {
+        map.style.transformOrigin = 'top left';
+        map.style.transform = `scale(${state.zoom})`;
+      }
+    }
+
     // ===== Init & responsive =====
     function renderSlots(){
       const sel = $('#slotSelect');
@@ -1261,11 +1284,6 @@
       $('#modeIcon').innerHTML = svg;
     })();
 
-    //Debounce para re-render en cambios de tamaño (clave para vista aérea)
-    // let rzT;
-    // function handleResize(){ clearTimeout(rzT); rzT = setTimeout(()=> renderGrid(), 120); }
-    // window.addEventListener('resize', handleResize);
-    // window.addEventListener('orientationchange', handleResize);
 
       /* Re‑cálculo en resize / cambio de orientación */
     let rzT;
@@ -1275,6 +1293,9 @@
 
     // Llama una vez al iniciar
     updateOrientation();
+
+    $('#zoomInBtn')?.addEventListener('click', ()=> { changeZoom(0.1); });
+    $('#zoomOutBtn')?.addEventListener('click', ()=> { changeZoom(-0.1); });
 
     // Boot
     load();
